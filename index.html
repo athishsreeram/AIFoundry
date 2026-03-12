@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>DesignForge — Become an AI-Era Engineer</title>
+<link rel="stylesheet" href="css/shared.css">
+<style>
+section{position:relative;z-index:1}
+/* HERO */
+.hero{min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:120px 2rem 80px}
+.hero-pill{display:inline-flex;align-items:center;gap:8px;background:rgba(0,229,255,.08);border:1px solid rgba(0,229,255,.2);color:var(--cyan);padding:6px 16px;border-radius:99px;font-size:.78rem;font-weight:700;letter-spacing:.05em;text-transform:uppercase;margin-bottom:2rem;animation:fadeUp .6s both}
+.hero h1{font-size:clamp(2.8rem,6.5vw,5.2rem);font-weight:800;letter-spacing:-.04em;line-height:1.03;max-width:960px;animation:fadeUp .6s .08s both}
+.grad{background:linear-gradient(135deg,var(--cyan) 0%,var(--purple) 60%,var(--orange) 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.hero-sub{font-size:1.1rem;color:var(--text2);max-width:560px;margin:1.5rem 0 2.5rem;animation:fadeUp .6s .16s both;font-weight:300}
+.hero-btns{display:flex;gap:1rem;flex-wrap:wrap;justify-content:center;animation:fadeUp .6s .24s both;margin-bottom:4rem}
+/* DEMO WINDOW */
+.demo-win{width:100%;max-width:900px;background:var(--surface);border:1px solid var(--border);border-radius:18px;overflow:hidden;box-shadow:0 40px 100px rgba(0,0,0,.55),0 0 0 1px rgba(0,229,255,.04);animation:fadeUp .8s .35s both}
+.win-bar{background:var(--surface2);padding:12px 16px;display:flex;align-items:center;gap:8px;border-bottom:1px solid var(--border)}
+.win-dot{width:10px;height:10px;border-radius:50%}
+.win-title{margin-left:8px;font-size:.78rem;color:var(--text2)}
+.win-body{display:grid;grid-template-columns:1fr 1fr;min-height:300px}
+.win-chat{padding:1.5rem;border-right:1px solid var(--border);display:flex;flex-direction:column;gap:.9rem}
+.chat-lbl{font-size:.65rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--text3);margin-bottom:.15rem}
+.bubble{padding:10px 14px;border-radius:10px;font-size:.82rem;line-height:1.55;max-width:88%}
+.bubble.ai{background:rgba(0,229,255,.07);border:1px solid rgba(0,229,255,.12);align-self:flex-start}
+.bubble.user{background:rgba(139,92,246,.13);border:1px solid rgba(139,92,246,.2);align-self:flex-end}
+.win-arch{padding:1.5rem;display:flex;flex-direction:column;gap:.6rem}
+.arch-node{background:var(--surface2);border:1px solid var(--border);border-radius:7px;padding:7px 13px;font-size:.76rem;display:flex;align-items:center;gap:7px;transition:border-color .3s}
+.arch-node.c{border-color:var(--cyan);color:var(--cyan)}
+.arch-node.p{border-color:rgba(139,92,246,.5);color:#c4b5fd}
+.arch-node.g{border-color:rgba(16,185,129,.4);color:var(--green)}
+.arch-arrow{color:var(--text3);font-size:.68rem;padding-left:.9rem}
+.nd{width:6px;height:6px;border-radius:50%;background:currentColor;flex-shrink:0}
+
+/* LOGOS */
+.logos{padding:2.5rem 2rem;border-top:1px solid var(–border);border-bottom:1px solid var(–border);text-align:center}
+.logos-lbl{font-size:.7rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(–text3);margin-bottom:1.75rem}
+.logos-row{display:flex;align-items:center;justify-content:center;gap:3rem;flex-wrap:wrap}
+.co{font-family:‘Syne’,sans-serif;font-weight:700;font-size:.95rem;color:rgba(255,255,255,.2);letter-spacing:-.01em;transition:color .2s}
+.co:hover{color:rgba(255,255,255,.45)}
+
+/* TRACKS */
+.tracks{padding:6rem 2rem}
+.tracks-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1.5rem;margin-top:3.5rem}
+.track-card{background:var(–surface);border:1px solid var(–border);border-radius:18px;padding:2rem;position:relative;overflow:hidden;transition:all .3s;cursor:pointer}
+.track-card::before{content:’’;position:absolute;inset:0;opacity:0;transition:opacity .3s;border-radius:18px}
+.track-card:nth-child(1)::before{background:radial-gradient(circle at 20% 20%,rgba(0,229,255,.07),transparent 60%)}
+.track-card:nth-child(2)::before{background:radial-gradient(circle at 20% 20%,rgba(139,92,246,.08),transparent 60%)}
+.track-card:nth-child(3)::before{background:radial-gradient(circle at 20% 20%,rgba(249,115,22,.07),transparent 60%)}
+.track-card:hover{transform:translateY(-4px);border-color:var(–border2)}
+.track-card:hover::before{opacity:1}
+.track-icon{font-size:2.2rem;margin-bottom:1rem}
+.track-count{font-family:‘Syne’,sans-serif;font-size:2rem;font-weight:800;margin:.75rem 0 .25rem}
+.track-count span{font-size:.85rem;font-weight:400;color:var(–text2);margin-left:3px}
+.track-features{margin-top:1.25rem;display:flex;flex-direction:column;gap:.4rem}
+.tf{font-size:.82rem;color:var(–text2);display:flex;align-items:center;gap:7px}
+.tf::before{content:‘→’;color:var(–cyan);font-size:.7rem}
+
+/* HOW */
+.how{padding:6rem 2rem;background:linear-gradient(180deg,transparent,rgba(12,18,32,.5),transparent)}
+.steps{display:grid;grid-template-columns:repeat(4,1fr);gap:1.5rem;margin-top:3.5rem;position:relative}
+.steps::before{content:’’;position:absolute;top:32px;left:calc(12.5% + 16px);right:calc(12.5% + 16px);height:1px;background:linear-gradient(90deg,transparent,var(–border2),var(–border2),transparent);z-index:0}
+.step{text-align:center;position:relative;z-index:1}
+.step-num{width:48px;height:48px;border-radius:50%;background:var(–surface);border:1px solid var(–border2);display:flex;align-items:center;justify-content:center;font-family:‘Syne’,sans-serif;font-weight:800;font-size:1.1rem;margin:0 auto 1rem;color:var(–cyan)}
+.step h4{font-size:.95rem;font-weight:700;margin-bottom:.4rem;letter-spacing:-.01em}
+.step p{font-size:.82rem;color:var(–text2);line-height:1.5}
+
+/* TESTIMONIALS */
+.testi{padding:6rem 0}
+.testi-inner{max-width:1120px;margin:0 auto;padding:0 2rem}
+.testi-scroll{overflow:hidden;margin-top:3rem;mask-image:linear-gradient(to right,transparent,black 8%,black 92%,transparent)}
+.testi-track{display:flex;gap:1.25rem;animation:slide 30s linear infinite;width:max-content}
+.testi-track:hover{animation-play-state:paused}
+@keyframes slide{to{transform:translateX(-50%)}}
+.tcard{background:var(–surface);border:1px solid var(–border);border-radius:14px;padding:1.5rem;width:290px;flex-shrink:0}
+.tcard:hover{border-color:var(–border2)}
+.tcard-stars{color:#fbbf24;font-size:.82rem;margin-bottom:.75rem}
+.tcard-text{font-size:.82rem;color:var(–text2);line-height:1.6;margin-bottom:1.25rem}
+.tcard-author{display:flex;align-items:center;gap:9px}
+.tcard-av{width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:‘Syne’,sans-serif;font-weight:800;font-size:.72rem;color:#fff;flex-shrink:0}
+.tcard-name{font-size:.8rem;font-weight:600}
+.tcard-role{font-size:.7rem;color:var(–text2)}
+
+/* CTA */
+.cta{padding:6rem 2rem;text-align:center}
+.cta-box{max-width:680px;margin:0 auto;background:var(–surface);border:1px solid var(–border);border-radius:24px;padding:4rem 3rem;position:relative;overflow:hidden}
+.cta-box::before{content:’’;position:absolute;top:0;left:50%;transform:translateX(-50%);width:55%;height:1px;background:linear-gradient(to right,transparent,var(–cyan),transparent)}
+.cta-box h2{font-size:clamp(1.8rem,3vw,2.4rem);font-weight:800;letter-spacing:-.03em;margin-bottom:1rem}
+.cta-box p{color:var(–text2);margin-bottom:2rem;font-size:.95rem}
+
+/* FOOTER */
+footer{border-top:1px solid var(–border);padding:3rem 2rem}
+.footer-inner{max-width:1120px;margin:0 auto;display:grid;grid-template-columns:1.5fr 1fr 1fr 1fr;gap:3rem}
+.fb{font-family:‘Syne’,sans-serif;font-weight:800;font-size:1rem;margin-bottom:.5rem}
+.ft{font-size:.78rem;color:var(–text2)}
+.fc h5{font-size:.68rem;font-weight:700;letter-spacing:.09em;text-transform:uppercase;color:var(–text3);margin-bottom:.9rem}
+.fc a{display:block;font-size:.83rem;color:var(–text2);margin-bottom:.45rem;transition:color .2s}
+.fc a:hover{color:var(–text)}
+.footer-bot{max-width:1120px;margin:2rem auto 0;padding-top:1.75rem;border-top:1px solid var(–border);display:flex;justify-content:space-between;font-size:.78rem;color:var(–text3)}
+@media(max-width:900px){.tracks-grid,.steps,.footer-inner{grid-template-columns:1fr 1fr}.win-body{grid-template-columns:1fr}.win-arch{display:none}}
+@media(max-width:600px){.tracks-grid,.steps,.footer-inner{grid-template-columns:1fr}}
+</style>
+
+</head>
+<body>
+<div class="orb orb-1"></div><div class="orb orb-2"></div><div class="orb orb-3"></div>
+<div id="nav-root"></div>
+
+<!-- HERO -->
+
+<section class="hero">
+  <div class="hero-pill">✨ The AI-Era Interview Platform</div>
+  <h1>Master DSA, System Design<br>&amp; <span class="grad">AI Engineering</span></h1>
+  <p class="hero-sub">The only platform that prepares you for where interviews are going — not just where they've been. Prompts, agents, evals, and classic fundamentals.</p>
+  <div class="hero-btns">
+    <a href="problems.html" class="btn btn-primary btn-lg">Start Practicing Free →</a>
+    <a href="ai-lab.html" class="btn btn-ghost btn-lg">Explore AI Lab</a>
+  </div>
+  <div class="demo-win">
+    <div class="win-bar">
+      <div class="win-dot" style="background:#ff5f57"></div>
+      <div class="win-dot" style="background:#ffbd2e"></div>
+      <div class="win-dot" style="background:#28c840"></div>
+      <span class="win-title">AI Interviewer — Design a RAG Pipeline for a Legal AI Startup</span>
+    </div>
+    <div class="win-body">
+      <div class="win-chat">
+        <div class="chat-lbl">AI Interviewer</div>
+        <div class="bubble ai">You're building a legal research tool. Documents are 200-page PDFs. How does your RAG pipeline handle very long documents?</div>
+        <div class="bubble user">I'd use hierarchical chunking — split by section headers first, then paragraph-level with 20% overlap. Metadata tags each chunk with doc ID and page range.</div>
+        <div class="bubble ai">Smart. Now what happens when a query spans two different PDFs? How does your retrieval rank cross-document results?<span class="cursor"></span></div>
+      </div>
+      <div class="win-arch">
+        <div class="chat-lbl">Your Architecture</div>
+        <div class="arch-node c"><div class="nd"></div>PDF Parser + Chunker</div>
+        <div class="arch-arrow">↓ embeds via text-embedding-3</div>
+        <div class="arch-node p"><div class="nd"></div>Pinecone Vector Store</div>
+        <div class="arch-arrow">↓ hybrid search (dense + sparse)</div>
+        <div class="arch-node g"><div class="nd"></div>Reranker (Cohere)</div>
+        <div class="arch-arrow">↓ top-k → LLM context</div>
+        <div class="arch-node"><div class="nd"></div>Claude 3.5 Generator</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- LOGOS -->
+
+<div class="logos">
+  <div class="logos-lbl">Engineers from these companies practice here</div>
+  <div class="logos-row">
+    <div class="co">Google</div><div class="co">Anthropic</div><div class="co">Meta</div>
+    <div class="co">OpenAI</div><div class="co">Amazon</div><div class="co">Stripe</div>
+    <div class="co">Microsoft</div><div class="co">Cohere</div>
+  </div>
+</div>
+
+<!-- TRACKS -->
+
+<section class="tracks container">
+  <div class="reveal" style="text-align:center">
+    <span class="sec-label">Three Tracks</span>
+    <h2 class="sec-title">Everything You Need to Win<br>In the Age of AI</h2>
+    <p class="sec-sub" style="margin:0 auto">From sorting arrays to designing multi-agent systems — one platform, one path.</p>
+  </div>
+  <div class="tracks-grid">
+    <div class="track-card reveal" onclick="location.href='problems.html?track=dsa'">
+      <div class="track-icon">🧮</div>
+      <div class="badge badge-cyan">Foundation</div>
+      <h3 style="font-size:1.2rem;font-weight:800;margin-top:.75rem;letter-spacing:-.02em">DSA Foundation</h3>
+      <p style="font-size:.84rem;color:var(--text2);margin-top:.4rem">Classic algorithms — taught with an AI lens so every concept connects to the real world.</p>
+      <div class="track-count">8 <span>problems</span></div>
+      <div class="track-features">
+        <div class="tf">Visual algorithm animator</div>
+        <div class="tf">Big-O complexity analysis</div>
+        <div class="tf">AI lens: how it maps to LLMs</div>
+        <div class="tf">Spaced repetition system</div>
+      </div>
+      <div style="margin-top:1.5rem"><span class="btn btn-ghost btn-sm">Start Track →</span></div>
+    </div>
+    <div class="track-card reveal" onclick="location.href='problems.html?track=system'">
+      <div class="track-icon">🏗️</div>
+      <div class="badge badge-purple">Intermediate</div>
+      <h3 style="font-size:1.2rem;font-weight:800;margin-top:.75rem;letter-spacing:-.02em">System Design</h3>
+      <p style="font-size:.84rem;color:var(--text2);margin-top:.4rem">Design systems that handle billions of users — with an interactive whiteboard and AI feedback.</p>
+      <div class="track-count">7 <span>problems</span></div>
+      <div class="track-features">
+        <div class="tf">Drag-and-drop whiteboard</div>
+        <div class="tf">AI design reviewer</div>
+        <div class="tf">Scale estimation tool</div>
+        <div class="tf">Community solutions</div>
+      </div>
+      <div style="margin-top:1.5rem"><span class="btn btn-ghost btn-sm">Start Track →</span></div>
+    </div>
+    <div class="track-card reveal" onclick="location.href='ai-lab.html'">
+      <div class="track-icon">🤖</div>
+      <div class="badge badge-orange">New Frontier</div>
+      <h3 style="font-size:1.2rem;font-weight:800;margin-top:.75rem;letter-spacing:-.02em">AI Engineering</h3>
+      <p style="font-size:.84rem;color:var(--text2);margin-top:.4rem">Prompt engineering, agent design, RAG pipelines, evals — the skills that matter now.</p>
+      <div class="track-count">8 <span>challenges</span></div>
+      <div class="track-features">
+        <div class="tf">Prompt engineering lab</div>
+        <div class="tf">Agent trace debugger</div>
+        <div class="tf">Token budget challenges</div>
+        <div class="tf">Eval framework builder</div>
+      </div>
+      <div style="margin-top:1.5rem"><span class="btn btn-primary btn-sm">Explore Lab →</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- HOW IT WORKS -->
+
+<section class="how">
+  <div class="container">
+    <div class="reveal" style="text-align:center">
+      <span class="sec-label">How It Works</span>
+      <h2 class="sec-title">From Zero to Interview-Ready</h2>
+    </div>
+    <div class="steps">
+      <div class="step reveal">
+        <div class="step-num">1</div>
+        <h4>Skill Assessment</h4>
+        <p>Take a 10-minute AI-graded test across all three tracks. Know exactly where you stand.</p>
+      </div>
+      <div class="step reveal">
+        <div class="step-num">2</div>
+        <h4>Personalized Plan</h4>
+        <p>Claude generates a daily study plan based on your target company and interview date.</p>
+      </div>
+      <div class="step reveal">
+        <div class="step-num">3</div>
+        <h4>Practice Daily</h4>
+        <p>Solve problems, use the whiteboard, get AI feedback. Spaced repetition reinforces weak spots.</p>
+      </div>
+      <div class="step reveal">
+        <div class="step-num">4</div>
+        <h4>Mock &amp; Ship</h4>
+        <p>Weekly mock interviews with the AI. Hit 85% readiness. Walk in confident.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- TESTIMONIALS -->
+
+<section class="testi">
+  <div class="testi-inner">
+    <div class="reveal" style="text-align:center">
+      <span class="sec-label">Success Stories</span>
+      <h2 class="sec-title">Engineers Who Made It</h2>
+    </div>
+  </div>
+  <div class="testi-scroll" style="margin-top:3rem">
+    <div class="testi-track" id="tt"></div>
+  </div>
+</section>
+
+<!-- CTA -->
+
+<section class="cta">
+  <div class="cta-box reveal">
+    <h2>Start Your AI-Era Journey Today</h2>
+    <p>Free forever on the foundation tier. Upgrade when you're ready to go deep.</p>
+    <a href="problems.html" class="btn btn-primary btn-lg">Start Practicing Free →</a>
+  </div>
+</section>
+
+<!-- FOOTER -->
+
+<footer>
+  <div class="footer-inner">
+    <div>
+      <div class="fb">⚡ DesignForge</div>
+      <div class="ft">The AI-era interview prep platform.<br>Master the fundamentals, design the future.</div>
+    </div>
+    <div class="fc"><h5>Practice</h5>
+      <a href="problems.html?track=dsa">DSA Foundation</a>
+      <a href="problems.html?track=system">System Design</a>
+      <a href="ai-lab.html">AI Engineering Lab</a>
+      <a href="interview.html">Interview Simulator</a>
+    </div>
+    <div class="fc"><h5>Learn</h5>
+      <a href="#">Blog</a><a href="#">Courses</a><a href="#">Patterns Guide</a><a href="#">AI Glossary</a>
+    </div>
+    <div class="fc"><h5>Company</h5>
+      <a href="#">About</a><a href="#">Privacy</a><a href="#">Terms</a><a href="#">Contact</a>
+    </div>
+  </div>
+  <div class="footer-bot">
+    <div>© 2026 DesignForge. All rights reserved.</div>
+    <div>Built for AI-era engineers.</div>
+  </div>
+</footer>
+
+<script src="js/data.js"></script>
+
+<script>
+document.getElementById('nav-root').innerHTML = DF.nav('index.html');
+DF.observe();
+
+// Testimonials
+const testimonials = [
+  {name:'Priya S.',role:'AI Engineer @ Anthropic',av:'PS',color:'#00e5ff',text:'"The AI Engineering track is the only place I found that actually tested agentic thinking. Got my dream role."'},
+  {name:'Marcus W.',role:'Senior SWE @ Google',av:'MW',color:'#8b5cf6',text:'"System design whiteboard with AI feedback is a game-changer. Like having a staff engineer review my work 24/7."'},
+  {name:'Lin C.',role:'ML Engineer @ OpenAI',av:'LC',color:'#10b981',text:'"The token budget challenge humbled me. I thought I knew prompting — this platform showed me how much I didn\'t."'},
+  {name:'James O.',role:'SWE II @ Meta',av:'JO',color:'#f59e0b',text:'"DSA with the AI lens made everything click. Suddenly LRU Cache wasn\'t just interview prep, it was real architecture."'},
+  {name:'Sara M.',role:'Staff Eng @ Stripe',av:'SM',color:'#f43f5e',text:'"Debugged my first hallucinating agent trace here. The agent debugger is genuinely unlike anything else out there."'},
+  {name:'Raj P.',role:'AI Researcher @ Cohere',av:'RP',color:'#f97316',text:'"Eval framework design problem is the most realistic AI engineering challenge I\'ve seen outside of actual work."'},
+  {name:'Emma T.',role:'Principal Eng @ Microsoft',av:'ET',color:'#00e5ff',text:'"The interview simulator with the AI playing interviewer felt indistinguishable from the real thing. Incredible."'},
+];
+
+const all=[...testimonials,...testimonials];
+document.getElementById('tt').innerHTML = all.map(t=>`
+  <div class="tcard">
+    <div class="tcard-stars">★★★★★</div>
+    <div class="tcard-text">${t.text}</div>
+    <div class="tcard-author">
+      <div class="tcard-av" style="background:linear-gradient(135deg,${t.color}88,${t.color})">${t.av}</div>
+      <div><div class="tcard-name">${t.name}</div><div class="tcard-role">${t.role}</div></div>
+    </div>
+  </div>`).join('');
+</script>
+
+</body>
+</html>

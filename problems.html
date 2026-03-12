@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Problems — DesignForge</title>
+<link rel="stylesheet" href="css/shared.css">
+<style>
+.layout{display:grid;grid-template-columns:240px 1fr;gap:0;min-height:calc(100vh - var(--nav-h));padding-top:var(--nav-h)}
+/* SIDEBAR */
+.sidebar{background:var(--surface);border-right:1px solid var(--border);padding:1.5rem 1.25rem;position:sticky;top:var(--nav-h);height:calc(100vh - var(--nav-h));overflow-y:auto;z-index:10}
+.sb-title{font-size:.68rem;font-weight:700;letter-spacing:.09em;text-transform:uppercase;color:var(--text3);margin-bottom:.75rem;margin-top:1.25rem}
+.sb-title:first-child{margin-top:0}
+.track-btn{width:100%;display:flex;align-items:center;gap:9px;padding:9px 12px;border-radius:8px;background:transparent;border:none;color:var(--text2);font-size:.855rem;font-weight:500;cursor:pointer;transition:all .18s;text-align:left}
+.track-btn:hover{background:var(--surface2);color:var(--text)}
+.track-btn.on{background:var(--cyan-dim);color:var(--cyan)}
+.track-btn .tb-icon{font-size:1rem}
+.track-btn .tb-count{margin-left:auto;font-size:.72rem;background:var(--surface3);padding:1px 7px;border-radius:99px;color:var(--text3)}
+.track-btn.on .tb-count{background:rgba(0,229,255,.15);color:var(--cyan)}
+.diff-filter{display:flex;flex-direction:column;gap:.35rem}
+.diff-btn{padding:7px 12px;border-radius:7px;background:transparent;border:1px solid var(--border);color:var(--text2);font-size:.8rem;font-weight:600;cursor:pointer;transition:all .18s;text-align:left}
+.diff-btn:hover{border-color:var(--border2);color:var(--text)}
+.diff-btn.on.e{border-color:var(--green);color:var(--green);background:var(--green-dim)}
+.diff-btn.on.m{border-color:var(--amber);color:var(--amber);background:var(--amber-dim)}
+.diff-btn.on.h{border-color:var(--rose);color:var(--rose);background:var(--rose-dim)}
+.tags-wrap{display:flex;flex-wrap:wrap;gap:.4rem}
+
+/* MAIN */
+.main{padding:2rem;background:var(–bg);position:relative;z-index:1}
+.main-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:1.5rem;flex-wrap:wrap;gap:1rem}
+.main-header h1{font-size:1.5rem;font-weight:800;letter-spacing:-.025em}
+.search-bar{display:flex;align-items:center;gap:.5rem;background:var(–surface);border:1px solid var(–border);border-radius:9px;padding:8px 14px;width:280px;transition:border-color .2s}
+.search-bar:focus-within{border-color:var(–border2)}
+.search-bar input{background:none;border:none;outline:none;color:var(–text);font-size:.875rem;width:100%}
+.search-bar input::placeholder{color:var(–text3)}
+/* STATS ROW */
+.stats-row{display:grid;grid-template-columns:repeat(3,1fr);gap:1rem;margin-bottom:1.75rem}
+.stat-box{background:var(–surface);border:1px solid var(–border);border-radius:11px;padding:1rem 1.25rem}
+.stat-num{font-family:‘Syne’,sans-serif;font-size:1.6rem;font-weight:800;line-height:1}
+.stat-lbl{font-size:.75rem;color:var(–text2);margin-top:.25rem}
+/* TABLE */
+.prob-table{width:100%;border-collapse:collapse}
+.prob-table th{padding:.6rem 1rem;text-align:left;font-size:.7rem;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(–text3);border-bottom:1px solid var(–border)}
+.prob-row{border-bottom:1px solid var(–border);cursor:pointer;transition:background .15s}
+.prob-row:hover{background:var(–surface)}
+.prob-row td{padding:.85rem 1rem;font-size:.875rem;vertical-align:middle}
+.prob-row td:first-child{color:var(–text3);font-family:var(–mono);font-size:.78rem;width:48px}
+.prob-title{font-weight:600;color:var(–text);transition:color .15s}
+.prob-row:hover .prob-title{color:var(–cyan)}
+.prob-tags{display:flex;gap:.35rem;flex-wrap:wrap;margin-top:.3rem}
+.prob-co{display:flex;gap:.35rem;flex-wrap:wrap}
+.co-chip{font-size:.68rem;padding:2px 8px;background:var(–surface2);border:1px solid var(–border);border-radius:4px;color:var(–text3)}
+.solved-icon{color:var(–green);font-size:1rem}
+.unsolved-icon{color:var(–text3);font-size:.9rem}
+.ai-lens-badge{display:inline-flex;align-items:center;gap:5px;font-size:.68rem;background:var(–orange-dim);color:var(–orange);border:1px solid rgba(249,115,22,.2);border-radius:4px;padding:2px 8px;margin-top:.25rem}
+/* EMPTY */
+.empty{text-align:center;padding:4rem 2rem;color:var(–text2)}
+.empty-icon{font-size:3rem;margin-bottom:1rem}
+/* PROGRESS */
+.track-prog{margin-bottom:1.5rem}
+.tp-row{display:flex;align-items:center;gap:.75rem;margin-bottom:.6rem}
+.tp-lbl{font-size:.78rem;color:var(–text2);width:110px;flex-shrink:0}
+.tp-num{font-size:.75rem;color:var(–text3);margin-left:auto;flex-shrink:0}
+@media(max-width:900px){.layout{grid-template-columns:1fr}.sidebar{display:none}}
+</style>
+
+</head>
+<body>
+<div class="orb orb-1"></div><div class="orb orb-2"></div>
+<div id="nav-root"></div>
+<div class="layout">
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <div class="sb-title">Track</div>
+    <button class="track-btn on" data-track="all" onclick="setTrack('all',this)">
+      <span class="tb-icon">⚡</span>All Problems<span class="tb-count" id="cnt-all">23</span>
+    </button>
+    <button class="track-btn" data-track="dsa" onclick="setTrack('dsa',this)">
+      <span class="tb-icon">🧮</span>DSA Foundation<span class="tb-count" id="cnt-dsa">8</span>
+    </button>
+    <button class="track-btn" data-track="system" onclick="setTrack('system',this)">
+      <span class="tb-icon">🏗️</span>System Design<span class="tb-count" id="cnt-system">7</span>
+    </button>
+    <button class="track-btn" data-track="ai" onclick="setTrack('ai',this)">
+      <span class="tb-icon">🤖</span>AI Engineering<span class="tb-count" id="cnt-ai">8</span>
+    </button>
+
+```
+<div class="sb-title">Difficulty</div>
+<div class="diff-filter">
+  <button class="diff-btn" data-d="Easy" onclick="toggleDiff('Easy',this)">🟢 Easy</button>
+  <button class="diff-btn" data-d="Medium" onclick="toggleDiff('Medium',this)">🟡 Medium</button>
+  <button class="diff-btn" data-d="Hard" onclick="toggleDiff('Hard',this)">🔴 Hard</button>
+</div>
+
+<div class="sb-title">Status</div>
+<div class="diff-filter">
+  <button class="diff-btn" data-st="solved" onclick="toggleStatus('solved',this)">✅ Solved</button>
+  <button class="diff-btn" data-st="unsolved" onclick="toggleStatus('unsolved',this)">⬜ Unsolved</button>
+</div>
+
+<div class="sb-title">Your Progress</div>
+<div class="track-prog" id="prog-section"></div>
+
+<div class="sb-title">Tags</div>
+<div class="tags-wrap" id="tags-wrap"></div>
+```
+
+  </aside>
+
+  <!-- MAIN -->
+
+  <main class="main">
+    <div class="main-header">
+      <h1 id="main-title">All Problems</h1>
+      <div class="search-bar">
+        <span style="color:var(--text3);font-size:.9rem">🔍</span>
+        <input type="text" placeholder="Search problems..." id="search-input" oninput="render()">
+      </div>
+    </div>
+
+```
+<div class="stats-row" id="stats-row"></div>
+<table class="prob-table">
+  <thead>
+    <tr>
+      <th>#</th>
+      <th>Problem</th>
+      <th>Difficulty</th>
+      <th>Companies</th>
+      <th>Status</th>
+    </tr>
+  </thead>
+  <tbody id="prob-body"></tbody>
+</table>
+<div class="empty" id="empty" style="display:none">
+  <div class="empty-icon">🔍</div>
+  <p>No problems match your filters.</p>
+  <button class="btn btn-ghost btn-sm" style="margin-top:1rem" onclick="resetFilters()">Clear filters</button>
+</div>
+```
+
+  </main>
+</div>
+
+<script src="js/data.js"></script>
+
+<script>
+document.getElementById('nav-root').innerHTML = DF.nav('problems.html');
+
+let activeTrack='all', activeDiffs=new Set(), activeStatus=null, activeTag=null;
+
+// read URL param
+const urlTrack = new URLSearchParams(location.search).get('track');
+if(urlTrack) activeTrack = urlTrack;
+
+function setTrack(t,btn){
+  activeTrack=t;
+  document.querySelectorAll('.track-btn').forEach(b=>b.classList.remove('on'));
+  btn.classList.add('on');
+  document.getElementById('main-title').textContent = t==='all'?'All Problems': DF.trackMeta[t]?.label||t;
+  render();
+}
+
+function toggleDiff(d,btn){
+  if(activeDiffs.has(d)){activeDiffs.delete(d);btn.classList.remove('on','e','m','h')}
+  else{activeDiffs.add(d);btn.classList.add('on',d==='Easy'?'e':d==='Medium'?'m':'h')}
+  render();
+}
+function toggleStatus(st,btn){
+  if(activeStatus===st){activeStatus=null;btn.classList.remove('on')}
+  else{activeStatus=st;document.querySelectorAll('[data-st]').forEach(b=>b.classList.remove('on'));btn.classList.add('on')}
+  render();
+}
+function resetFilters(){activeTrack='all';activeDiffs=new Set();activeStatus=null;activeTag=null;
+  document.querySelectorAll('.track-btn,.diff-btn').forEach(b=>b.classList.remove('on','e','m','h'));
+  document.querySelector('[data-track="all"]').classList.add('on');
+  document.getElementById('search-input').value='';render();
+}
+
+function render(){
+  const q=(document.getElementById('search-input').value||'').toLowerCase();
+  let list=DF.problems.filter(p=>{
+    if(activeTrack!=='all' && p.track!==activeTrack) return false;
+    if(activeDiffs.size && !activeDiffs.has(p.diff)) return false;
+    if(activeStatus==='solved' && !p.solved) return false;
+    if(activeStatus==='unsolved' && p.solved) return false;
+    if(activeTag && !p.tags.includes(activeTag)) return false;
+    if(q && !p.title.toLowerCase().includes(q) && !p.tags.join(' ').toLowerCase().includes(q)) return false;
+    return true;
+  });
+  const body=document.getElementById('prob-body');
+  const empty=document.getElementById('empty');
+  if(!list.length){body.innerHTML='';empty.style.display='block';return;}
+  empty.style.display='none';
+  body.innerHTML=list.map((p,i)=>`
+    <tr class="prob-row" onclick="location.href='problem.html?id=${p.id}'">
+      <td>${i+1}</td>
+      <td>
+        <div class="prob-title">${p.title}</div>
+        <div class="prob-tags">
+          ${p.tags.map(t=>`<span class="tag" onclick="event.stopPropagation();filterTag('${t}')">${t}</span>`).join('')}
+        </div>
+        ${p.aiLens?`<div class="ai-lens-badge">🤖 AI Lens: ${p.aiLens}</div>`:''}
+      </td>
+      <td><span class="${p.diff.toLowerCase()}">${p.diff}</span></td>
+      <td><div class="prob-co">${p.companies.map(c=>`<span class="co-chip">${c}</span>`).join('')}</div></td>
+      <td style="text-align:center">${p.solved?'<span class="solved-icon">✓</span>':'<span class="unsolved-icon">○</span>'}</td>
+    </tr>`).join('');
+
+  // stats
+  const solved=list.filter(p=>p.solved).length;
+  const easy=list.filter(p=>p.diff==='Easy').length;
+  const hard=list.filter(p=>p.diff==='Hard').length;
+  document.getElementById('stats-row').innerHTML=`
+    <div class="stat-box"><div class="stat-num" style="color:var(--cyan)">${list.length}</div><div class="stat-lbl">Problems shown</div></div>
+    <div class="stat-box"><div class="stat-num" style="color:var(--green)">${solved}</div><div class="stat-lbl">Solved by you</div></div>
+    <div class="stat-box"><div class="stat-num" style="color:var(--rose)">${hard}</div><div class="stat-lbl">Hard problems</div></div>`;
+}
+
+function filterTag(t){activeTag=activeTag===t?null:t;render();}
+
+// Build tags
+const allTags=[...new Set(DF.problems.flatMap(p=>p.tags))];
+document.getElementById('tags-wrap').innerHTML=allTags.map(t=>`<span class="tag" onclick="filterTag('${t}')" data-tag="${t}">${t}</span>`).join('');
+
+// Progress bars
+const s=DF.userStats;
+document.getElementById('prog-section').innerHTML=`
+  <div class="tp-row"><span class="tp-lbl">🧮 DSA</span><div class="prog-bar" style="flex:1"><div class="prog-fill" style="width:${Math.round(s.solved.dsa/s.total.dsa*100)}%"></div></div><span class="tp-num">${s.solved.dsa}/${s.total.dsa}</span></div>
+  <div class="tp-row"><span class="tp-lbl">🏗️ System</span><div class="prog-bar" style="flex:1"><div class="prog-fill" style="width:${Math.round(s.solved.system/s.total.system*100)}%"></div></div><span class="tp-num">${s.solved.system}/${s.total.system}</span></div>
+  <div class="tp-row"><span class="tp-lbl">🤖 AI Eng</span><div class="prog-bar" style="flex:1"><div class="prog-fill" style="width:${Math.round(s.solved.ai/s.total.ai*100)}%"></div></div><span class="tp-num">${s.solved.ai}/${s.total.ai}</span></div>`;
+
+// Init
+if(urlTrack){document.querySelectorAll('.track-btn').forEach(b=>b.classList.remove('on'));const btn=document.querySelector(`[data-track="${urlTrack}"]`);if(btn){btn.classList.add('on');document.getElementById('main-title').textContent=DF.trackMeta[urlTrack]?.label||urlTrack;}}
+render();
+</script>
+
+</body>
+</html>

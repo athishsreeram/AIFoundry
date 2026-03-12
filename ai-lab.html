@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>AI Lab — DesignForge</title>
+<link rel="stylesheet" href="css/shared.css">
+<style>
+.page{padding-top:var(--nav-h);min-height:100vh;position:relative;z-index:1}
+/* HERO STRIP */
+.lab-hero{background:linear-gradient(135deg,rgba(249,115,22,.06),rgba(139,92,246,.06));border-bottom:1px solid var(--border);padding:2.5rem 2rem}
+.lab-hero-inner{max-width:1120px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;gap:2rem;flex-wrap:wrap}
+.lab-hero h1{font-size:clamp(1.6rem,3vw,2.2rem);font-weight:800;letter-spacing:-.03em;margin-bottom:.4rem}
+.lab-hero p{font-size:.88rem;color:var(--text2);max-width:520px}
+.lab-stats{display:flex;gap:1.5rem;flex-shrink:0}
+.lab-stat{text-align:center}
+.lab-stat-num{font-family:'Syne',sans-serif;font-size:1.6rem;font-weight:800}
+.lab-stat-lbl{font-size:.7rem;color:var(--text2);text-transform:uppercase;letter-spacing:.06em}
+
+/* LAYOUT */
+.lab-layout{display:grid;grid-template-columns:260px 1fr;max-width:1120px;margin:0 auto;padding:2rem;gap:2rem}
+
+/* SIDEBAR */
+.lab-sb{display:flex;flex-direction:column;gap:.5rem}
+.type-btn{width:100%;display:flex;align-items:center;gap:9px;padding:10px 14px;border-radius:9px;background:transparent;border:1px solid var(–border);color:var(–text2);font-size:.855rem;font-weight:500;cursor:pointer;transition:all .18s;text-align:left}
+.type-btn:hover{border-color:var(–border2);color:var(–text)}
+.type-btn.on{border-color:rgba(249,115,22,.4);background:var(–orange-dim);color:var(–orange)}
+.type-btn .tb-cnt{margin-left:auto;font-size:.72rem;background:var(–surface3);padding:1px 7px;border-radius:99px}
+.type-btn.on .tb-cnt{background:rgba(249,115,22,.2);color:var(–orange)}
+.lab-sb-section{font-size:.68rem;font-weight:700;letter-spacing:.09em;text-transform:uppercase;color:var(–text3);padding:.75rem .25rem .25rem}
+.xp-display{background:var(–surface);border:1px solid var(–border);border-radius:12px;padding:1.25rem;margin-top:.5rem}
+.xp-title{font-size:.7rem;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(–text3);margin-bottom:.75rem}
+.xp-num{font-family:‘Syne’,sans-serif;font-size:1.8rem;font-weight:800;color:var(–amber)}
+.xp-lbl{font-size:.72rem;color:var(–text2);margin-bottom:.75rem}
+
+/* CHALLENGE GRID */
+.challenge-grid{display:grid;gap:1.25rem}
+.challenge-card{background:var(–surface);border:1px solid var(–border);border-radius:16px;overflow:hidden;cursor:pointer;transition:all .25s}
+.challenge-card:hover{border-color:var(–border2);transform:translateY(-2px);box-shadow:0 8px 30px rgba(0,0,0,.3)}
+.challenge-card.locked{opacity:.5;cursor:not-allowed}
+.cc-top{padding:1.5rem 1.5rem 1rem;display:flex;gap:1rem}
+.cc-icon{width:44px;height:44px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:1.3rem;flex-shrink:0}
+.cc-icon.prompt{background:rgba(249,115,22,.12)}
+.cc-icon.token{background:rgba(245,158,11,.12)}
+.cc-icon.agent{background:rgba(139,92,246,.12)}
+.cc-body{flex:1}
+.cc-title{font-size:1rem;font-weight:700;letter-spacing:-.015em;margin-bottom:.3rem}
+.cc-desc{font-size:.82rem;color:var(–text2);line-height:1.55}
+.cc-footer{padding:.9rem 1.5rem;border-top:1px solid var(–border);display:flex;align-items:center;gap:.75rem;background:rgba(0,0,0,.1)}
+.cc-xp{font-family:‘Syne’,sans-serif;font-size:.85rem;font-weight:700;color:var(–amber)}
+
+/* CHALLENGE MODAL / DETAIL */
+.challenge-detail{background:var(–surface);border:1px solid var(–border);border-radius:16px;padding:0;overflow:hidden}
+.cd-header{padding:1.5rem;border-bottom:1px solid var(–border);display:flex;align-items:flex-start;gap:1rem}
+.cd-back{background:transparent;border:1px solid var(–border);color:var(–text2);border-radius:7px;padding:6px 12px;font-size:.78rem;cursor:pointer;transition:all .18s;white-space:nowrap}
+.cd-back:hover{border-color:var(–border2);color:var(–text)}
+.cd-body{display:grid;grid-template-columns:1fr 1fr;min-height:400px}
+.cd-left{padding:1.5rem;border-right:1px solid var(–border)}
+.cd-right{padding:1.5rem;display:flex;flex-direction:column;gap:1rem}
+.code-block{background:var(–bg);border:1px solid var(–border);border-radius:9px;padding:1rem;font-family:var(–mono);font-size:.78rem;line-height:1.65;color:var(–text2);white-space:pre-wrap;overflow-y:auto;max-height:200px}
+.code-edit{background:var(–bg);border:1px solid var(–border);border-radius:9px;padding:1rem;font-family:var(–mono);font-size:.78rem;line-height:1.65;color:var(–text);white-space:pre-wrap;min-height:150px;outline:none;overflow-y:auto;max-height:250px;resize:none;width:100%;transition:border-color .2s}
+.code-edit:focus{border-color:var(–border2)}
+.cd-label{font-size:.68rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(–text3);margin-bottom:.4rem}
+.target-box{background:linear-gradient(135deg,rgba(16,185,129,.06),rgba(0,229,255,.04));border:1px solid rgba(16,185,129,.2);border-radius:9px;padding:1rem;font-family:var(–mono);font-size:.76rem;color:var(–green);white-space:pre-wrap;line-height:1.6}
+.hint-strip{background:var(–amber-dim);border:1px solid rgba(245,158,11,.2);border-radius:8px;padding:.75rem 1rem;font-size:.8rem;color:var(–amber)}
+.eval-result{background:var(–surface2);border:1px solid var(–border);border-radius:9px;padding:1rem;font-size:.82rem;line-height:1.6;min-height:80px;color:var(–text2)}
+.eval-result.good{border-color:rgba(16,185,129,.3);background:rgba(16,185,129,.05)}
+.eval-result.bad{border-color:rgba(244,63,94,.3);background:rgba(244,63,94,.05)}
+.cd-actions{display:flex;gap:.6rem;padding:1rem 1.5rem;border-top:1px solid var(–border);background:rgba(0,0,0,.1)}
+@media(max-width:900px){.lab-layout{grid-template-columns:1fr}.lab-sb{display:none}.cd-body{grid-template-columns:1fr}}
+</style>
+
+</head>
+<body>
+<div class="orb orb-1"></div><div class="orb orb-2"></div><div class="orb orb-3"></div>
+<div class="page">
+<div id="nav-root"></div>
+
+<!-- HERO -->
+
+<div class="lab-hero">
+  <div class="lab-hero-inner">
+    <div>
+      <div class="badge badge-orange" style="margin-bottom:.75rem">🤖 AI Engineering Lab</div>
+      <h1>The New Frontier of<br>Technical Interviews</h1>
+      <p>Prompt engineering, agent design, token efficiency, eval frameworks — the skills top AI companies test for now.</p>
+    </div>
+    <div class="lab-stats">
+      <div class="lab-stat"><div class="lab-stat-num text-cyan">5</div><div class="lab-stat-lbl">Challenges</div></div>
+      <div class="lab-stat"><div class="lab-stat-num" style="color:var(--amber)">1,750</div><div class="lab-stat-lbl">XP Available</div></div>
+      <div class="lab-stat"><div class="lab-stat-num" style="color:var(--green)">0</div><div class="lab-stat-lbl">Completed</div></div>
+    </div>
+  </div>
+</div>
+
+<div class="lab-layout">
+  <!-- SIDEBAR -->
+  <aside class="lab-sb">
+    <div class="lab-sb-section">Challenge Type</div>
+    <button class="type-btn on" onclick="filterType('all',this)">⚡ All Challenges <span class="tb-cnt">5</span></button>
+    <button class="type-btn" onclick="filterType('prompt',this)">✏️ Prompt Engineering <span class="tb-cnt">3</span></button>
+    <button class="type-btn" onclick="filterType('agent',this)">🤖 Agent Design <span class="tb-cnt">2</span></button>
+
+```
+<div class="lab-sb-section">Your XP</div>
+<div class="xp-display">
+  <div class="xp-title">Total Earned</div>
+  <div class="xp-num" id="total-xp">0</div>
+  <div class="xp-lbl">XP from AI Lab</div>
+  <div class="prog-bar"><div class="prog-fill" id="xp-bar" style="width:0%"></div></div>
+  <div style="font-size:.7rem;color:var(--text3);margin-top:.4rem">1,750 XP available this track</div>
+</div>
+
+<div class="lab-sb-section">Why This Matters</div>
+<div style="font-size:.78rem;color:var(--text2);line-height:1.6;padding:.25rem">
+  <p>Top AI companies — Anthropic, OpenAI, Cohere, Mistral — are now testing candidates on prompt engineering and agent architecture in technical screens.</p>
+  <br><p>This track teaches you to think like an AI systems engineer: cost-aware, failure-mode-aware, and output-quality-obsessed.</p>
+</div>
+```
+
+  </aside>
+
+  <!-- MAIN -->
+
+  <main>
+    <!-- CHALLENGE LIST -->
+    <div id="challenge-list"></div>
+    <!-- CHALLENGE DETAIL (hidden by default) -->
+    <div id="challenge-detail" style="display:none"></div>
+  </main>
+</div>
+</div>
+
+<script src="js/data.js"></script>
+
+<script>
+document.getElementById('nav-root').innerHTML = DF.nav('ai-lab.html');
+
+let activeType='all', totalXP=0;
+
+const typeIcons={prompt:'✏️',token:'💰',agent:'🤖'};
+const typeColors={prompt:'orange',token:'amber',agent:'purple'};
+
+function filterType(t,btn){
+  activeType=t;
+  document.querySelectorAll('.type-btn').forEach(b=>b.classList.remove('on'));
+  btn.classList.add('on');
+  renderList();
+}
+
+function renderList(){
+  const list = DF.aiLabChallenges.filter(c=>activeType==='all'||c.type===activeType);
+  document.getElementById('challenge-list').innerHTML = list.map(c=>`
+    <div class="challenge-card" onclick="openChallenge('${c.id}')">
+      <div class="cc-top">
+        <div class="cc-icon ${c.type}">${typeIcons[c.type]||'⚡'}</div>
+        <div class="cc-body">
+          <div style="display:flex;align-items:center;gap:.5rem;margin-bottom:.3rem;flex-wrap:wrap">
+            <span class="badge badge-${typeColors[c.type]||'cyan'}">${c.type}</span>
+            <span class="${c.diff.toLowerCase()}">${c.diff}</span>
+          </div>
+          <div class="cc-title">${c.title}</div>
+          <div class="cc-desc">${c.desc.substring(0,120)}...</div>
+        </div>
+      </div>
+      <div class="cc-footer">
+        <span class="cc-xp">+${c.xp} XP</span>
+        <span style="font-size:.75rem;color:var(--text3)">·</span>
+        <span style="font-size:.75rem;color:var(--text2)">${c.hints.length} hints available</span>
+        <span class="btn btn-ghost btn-sm" style="margin-left:auto">Start →</span>
+      </div>
+    </div>`).join('');
+  document.getElementById('challenge-detail').style.display='none';
+  document.getElementById('challenge-list').style.display='grid';
+}
+
+function openChallenge(id){
+  const c = DF.aiLabChallenges.find(x=>x.id===id);
+  if(!c) return;
+  document.getElementById('challenge-list').style.display='none';
+  const detail = document.getElementById('challenge-detail');
+  detail.style.display='block';
+  detail.innerHTML=`
+    <div class="challenge-detail">
+      <div class="cd-header">
+        <button class="cd-back" onclick="renderList()">← Back</button>
+        <div style="flex:1">
+          <div style="display:flex;align-items:center;gap:.6rem;margin-bottom:.3rem;flex-wrap:wrap">
+            <span class="badge badge-${typeColors[c.type]||'cyan'}">${typeIcons[c.type]} ${c.type}</span>
+            <span class="${c.diff.toLowerCase()}">${c.diff}</span>
+            <span class="cc-xp">+${c.xp} XP</span>
+          </div>
+          <h2 style="font-size:1.2rem;font-weight:800;letter-spacing:-.02em">${c.title}</h2>
+          <p style="font-size:.84rem;color:var(--text2);margin-top:.3rem">${c.desc}</p>
+        </div>
+      </div>
+      <div class="cd-body">
+        <div class="cd-left">
+          <div class="cd-label">❌ Broken / Weak Input</div>
+          <div class="code-block" style="margin-bottom:1rem">${escHtml(c.brokenPrompt)}</div>
+          <div class="cd-label">✅ Target Output</div>
+          <div class="target-box">${escHtml(c.targetOutput)}</div>
+          <div style="margin-top:1rem">
+            <div class="cd-label">💡 Hints</div>
+            ${c.hints.map((h,i)=>`
+              <div class="hint-strip" style="margin-bottom:.4rem;cursor:pointer" onclick="this.innerHTML='💡 ${h}'">
+                Click to reveal hint ${i+1}
+              </div>`).join('')}
+          </div>
+        </div>
+        <div class="cd-right">
+          <div>
+            <div class="cd-label">✏️ Your Improved Prompt / Solution</div>
+            <textarea class="code-edit" id="user-answer" placeholder="Write your improved prompt or solution here...">${c.brokenPrompt}</textarea>
+
+```
+      </div>
+      <div>
+        <div class="cd-label">🤖 AI Evaluation</div>
+        <div class="eval-result" id="eval-result">Submit your solution to get AI feedback on quality, efficiency, and correctness.</div>
+      </div>
+    </div>
+  </div>
+  <div class="cd-actions">
+    <button class="btn btn-ghost btn-sm" onclick="resetAnswer('${c.id}')">↩ Reset</button>
+    <button class="btn btn-ghost btn-sm" onclick="testAnswer('${c.id}')">▶ Test Output</button>
+    <button class="btn btn-primary" id="eval-btn" onclick="evaluateAnswer('${c.id}')">🤖 Evaluate with AI →</button>
+  </div>
+</div>`;
+```
+
+}
+
+function escHtml(t){ return t.replace(/&/g,’&’).replace(/</g,’<’).replace(/>/g,’>’); }
+
+function resetAnswer(id){
+const c=DF.aiLabChallenges.find(x=>x.id===id);
+if(c) document.getElementById(‘user-answer’).value=c.brokenPrompt;
+document.getElementById(‘eval-result’).className=‘eval-result’;
+document.getElementById(‘eval-result’).textContent=‘Submit your solution to get AI feedback.’;
+}
+
+async function testAnswer(id){
+const userAnswer = document.getElementById(‘user-answer’).value.trim();
+const c=DF.aiLabChallenges.find(x=>x.id===id);
+if(!userAnswer||!c) return;
+const evalBox=document.getElementById(‘eval-result’);
+evalBox.className=‘eval-result’;
+evalBox.innerHTML=’<span class="spinner"></span> Running your prompt…’;
+try{
+const res=await fetch(‘https://api.anthropic.com/v1/messages’,{
+method:‘POST’,headers:{‘Content-Type’:‘application/json’},
+body:JSON.stringify({
+model:‘claude-sonnet-4-20250514’,max_tokens:1000,
+messages:[{role:‘user’,content:userAnswer.replace(’{{review}}’,‘The AirPods Pro noise cancellation is incredible! Best purchase I've made this year. Sound quality is amazing.’).replace(’{{question}}’,‘What is 2+2?’)}]
+})
+});
+const data=await res.json();
+const out=data.content?.[0]?.text||’(no output)’;
+evalBox.innerHTML=`<strong style="color:var(--cyan)">Output:</strong><br><br>${escHtml(out)}`;
+}catch(e){
+evalBox.innerHTML=’<span style="color:var(--rose)">Could not run test. Check your prompt.</span>’;
+}
+}
+
+async function evaluateAnswer(id){
+const userAnswer = document.getElementById(‘user-answer’).value.trim();
+const c=DF.aiLabChallenges.find(x=>x.id===id);
+if(!userAnswer||!c) return;
+const btn=document.getElementById(‘eval-btn’);
+btn.disabled=true;btn.innerHTML=’<span class="spinner"></span> Evaluating…’;
+const evalBox=document.getElementById(‘eval-result’);
+evalBox.className=‘eval-result’;
+evalBox.innerHTML=’<span class="spinner"></span> AI is evaluating your solution…’;
+try{
+const res=await fetch(‘https://api.anthropic.com/v1/messages’,{
+method:‘POST’,headers:{‘Content-Type’:‘application/json’},
+body:JSON.stringify({
+model:‘claude-sonnet-4-20250514’,max_tokens:1000,
+system:`You are an expert AI engineering instructor evaluating a student's prompt engineering or agent design solution. Be constructive, specific, and encouraging. Score out of 100. Keep response under 200 words. Format: Score, Strengths, Improvements.`,
+messages:[{role:‘user’,content:`Challenge: ${c.title}\nOriginal (broken): ${c.brokenPrompt}\nTarget output: ${c.targetOutput}\nStudent's solution: ${userAnswer}\n\nEvaluate the student's solution.`}]
+})
+});
+const data=await res.json();
+const reply=data.content?.[0]?.text||‘Good effort! Keep refining.’;
+const isGood=reply.toLowerCase().includes(‘excellent’)||reply.toLowerCase().includes(‘great’)||reply.match(/score[:\s]+[89]\d|100/i);
+evalBox.className=‘eval-result ‘+(isGood?‘good’:’’);
+evalBox.innerHTML=reply.replace(/**(.+?)**/g,’<strong>$1</strong>’).replace(/\n/g,’<br>’);
+if(isGood){ totalXP+=c.xp; document.getElementById(‘total-xp’).textContent=totalXP; document.getElementById(‘xp-bar’).style.width=Math.min(100,Math.round(totalXP/1750*100))+’%’; }
+}catch(e){
+evalBox.className=‘eval-result’;
+evalBox.innerHTML=‘Great effort! The AI evaluator is currently unavailable. Review your solution against the target output manually.’;
+}
+btn.disabled=false;btn.innerHTML=‘🤖 Evaluate with AI →’;
+}
+
+renderList();
+</script>
+
+</body>
+</html>

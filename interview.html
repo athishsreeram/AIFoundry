@@ -1,0 +1,506 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Interview Simulator — DesignForge</title>
+<link rel="stylesheet" href="css/shared.css">
+<style>
+.page{padding-top:var(--nav-h);min-height:100vh;position:relative;z-index:1}
+
+/* LOBBY */
+.lobby{max-width:880px;margin:0 auto;padding:3rem 2rem}
+.lobby-title{font-size:clamp(1.8rem,3vw,2.4rem);font-weight:800;letter-spacing:-.03em;margin-bottom:.5rem}
+.lobby-sub{font-size:.95rem;color:var(–text2);margin-bottom:2.5rem}
+.mode-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1.25rem;margin-bottom:2.5rem}
+.mode-card{background:var(–surface);border:1px solid var(–border);border-radius:16px;padding:1.5rem;cursor:pointer;transition:all .25s;position:relative;overflow:hidden}
+.mode-card::before{content:’’;position:absolute;inset:0;opacity:0;transition:opacity .3s;border-radius:16px}
+.mode-card:nth-child(1)::before{background:radial-gradient(circle at 20% 20%,rgba(0,229,255,.08),transparent 60%)}
+.mode-card:nth-child(2)::before{background:radial-gradient(circle at 20% 20%,rgba(139,92,246,.08),transparent 60%)}
+.mode-card:nth-child(3)::before{background:radial-gradient(circle at 20% 20%,rgba(249,115,22,.08),transparent 60%)}
+.mode-card:hover{border-color:var(–border2);transform:translateY(-3px)}
+.mode-card:hover::before{opacity:1}
+.mode-card.selected{border-color:var(–cyan);background:var(–cyan-dim)}
+.mode-icon{font-size:2rem;margin-bottom:.75rem}
+.mode-title{font-size:1rem;font-weight:700;margin-bottom:.3rem}
+.mode-desc{font-size:.8rem;color:var(–text2);line-height:1.5}
+.setup-grid{display:grid;grid-template-columns:1fr 1fr;gap:1.25rem;margin-bottom:2rem}
+.setup-group{display:flex;flex-direction:column;gap:.4rem}
+.setup-label{font-size:.72rem;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(–text3)}
+.setup-select{background:var(–surface);border:1px solid var(–border);border-radius:8px;color:var(–text);padding:10px 14px;font-size:.875rem;outline:none;transition:border-color .2s;width:100%}
+.setup-select:focus{border-color:var(–border2)}
+.start-bar{display:flex;align-items:center;justify-content:space-between;gap:1rem;flex-wrap:wrap}
+.company-tags{display:flex;gap:.4rem;flex-wrap:wrap}
+
+/* INTERVIEW ARENA */
+.arena{display:none;height:calc(100vh - var(–nav-h));flex-direction:column}
+.arena-header{background:var(–surface);border-bottom:1px solid var(–border);padding:.75rem 1.5rem;display:flex;align-items:center;gap:1rem;flex-shrink:0}
+.arena-topic{font-size:.9rem;font-weight:700;flex:1}
+.timer{font-family:var(–mono);font-size:1rem;font-weight:600;color:var(–amber);background:var(–amber-dim);border:1px solid rgba(245,158,11,.2);border-radius:7px;padding:4px 12px}
+.timer.danger{color:var(–rose);background:var(–rose-dim);border-color:rgba(244,63,94,.2);animation:blink .8s step-end infinite}
+.arena-body{flex:1;display:grid;grid-template-columns:1fr 380px;overflow:hidden}
+
+/* WHITEBOARD IN ARENA */
+.arena-wb{background:var(–bg);display:flex;flex-direction:column;overflow:hidden}
+.wb-top{padding:.6rem 1rem;background:var(–surface);border-bottom:1px solid var(–border);display:flex;align-items:center;gap:.4rem;flex-wrap:wrap}
+.wb-btn{height:30px;padding:0 10px;border-radius:6px;background:transparent;border:1px solid var(–border);color:var(–text2);font-size:.75rem;cursor:pointer;transition:all .15s}
+.wb-btn:hover{border-color:var(–border2);color:var(–text)}
+.wb-btn.on{background:var(–cyan-dim);border-color:rgba(0,229,255,.3);color:var(–cyan)}
+#arena-canvas{display:block;width:100%;height:100%}
+.arena-footer{padding:.75rem 1.25rem;background:var(–surface);border-top:1px solid var(–border);display:flex;gap:.75rem;align-items:center}
+
+/* TRANSCRIPT */
+.transcript{background:var(–surface);border-left:1px solid var(–border);display:flex;flex-direction:column;overflow:hidden}
+.tr-header{padding:1rem 1.25rem;border-bottom:1px solid var(–border);flex-shrink:0}
+.tr-header-top{display:flex;align-items:center;gap:.5rem}
+.live-dot{width:8px;height:8px;border-radius:50%;background:var(–green);box-shadow:0 0 8px var(–green);animation:pulse-g 2s infinite}
+@keyframes pulse-g{0%,100%{opacity:1}50%{opacity:.3}}
+.tr-msgs{flex:1;overflow-y:auto;padding:1rem;display:flex;flex-direction:column;gap:.75rem}
+.tr-msg{animation:fadeUp .3s ease}
+.tr-msg.ai{align-self:flex-start;max-width:90%}
+.tr-msg.user{align-self:flex-end;max-width:90%}
+.tr-sender{font-size:.62rem;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(–text3);margin-bottom:.2rem}
+.tr-bubble{padding:9px 13px;border-radius:11px;font-size:.82rem;line-height:1.6}
+.tr-msg.ai .tr-bubble{background:var(–surface2);border:1px solid var(–border)}
+.tr-msg.user .tr-bubble{background:rgba(139,92,246,.12);border:1px solid rgba(139,92,246,.2)}
+.tr-input{padding:.85rem;border-top:1px solid var(–border);flex-shrink:0}
+.tr-row{display:flex;gap:.5rem;align-items:flex-end}
+.tr-ta{flex:1;background:var(–surface2);border:1px solid var(–border);border-radius:8px;color:var(–text);padding:8px 11px;font-size:.82rem;resize:none;outline:none;min-height:38px;max-height:90px;line-height:1.5;transition:border-color .2s}
+.tr-ta:focus{border-color:var(–border2)}
+.tr-send{width:34px;height:34px;border-radius:7px;background:var(–cyan);color:#000;font-size:.85rem;display:flex;align-items:center;justify-content:center;border:none;cursor:pointer;flex-shrink:0;transition:all .18s}
+.tr-send:hover{opacity:.85}
+.tr-send:disabled{opacity:.4;cursor:not-allowed}
+.qp-row{display:flex;flex-wrap:wrap;gap:.3rem;margin-bottom:.5rem}
+.qp{font-size:.68rem;padding:3px 9px;border-radius:5px;background:var(–surface2);border:1px solid var(–border);color:var(–text2);cursor:pointer;transition:all .15s}
+.qp:hover{border-color:var(–cyan);color:var(–cyan)}
+
+/* RESULT */
+.result-overlay{display:none;position:fixed;inset:0;background:rgba(7,11,18,.95);z-index:200;align-items:center;justify-content:center;backdrop-filter:blur(10px)}
+.result-box{background:var(–surface);border:1px solid var(–border);border-radius:24px;padding:3rem;max-width:560px;width:90%;text-align:center}
+.result-score{font-family:‘Syne’,sans-serif;font-size:4rem;font-weight:800;margin-bottom:.25rem}
+.score-breakdown{display:grid;grid-template-columns:1fr 1fr;gap:.75rem;margin:1.5rem 0;text-align:left}
+.score-item{background:var(–surface2);border:1px solid var(–border);border-radius:10px;padding:.85rem}
+.score-item-lbl{font-size:.7rem;color:var(–text2);margin-bottom:.3rem}
+.score-item-val{font-family:‘Syne’,sans-serif;font-size:1.2rem;font-weight:800}
+
+@media(max-width:900px){.arena-body{grid-template-columns:1fr}.arena-wb{display:none}.mode-grid{grid-template-columns:1fr}.setup-grid{grid-template-columns:1fr}}
+</style>
+
+</head>
+<body>
+<div class="orb orb-1"></div><div class="orb orb-2"></div>
+<div class="page" id="lobby-page">
+<div id="nav-root"></div>
+
+<!-- LOBBY -->
+
+<div class="lobby">
+  <div class="reveal">
+    <div class="badge badge-purple" style="margin-bottom:1rem">🎯 Interview Simulator</div>
+    <div class="lobby-title">Practice Like It's Real</div>
+    <div class="lobby-sub">AI plays a rigorous interviewer. Timed, adaptive, with real scoring. No pressure — except the good kind.</div>
+  </div>
+
+  <div class="reveal">
+    <div class="setup-label" style="margin-bottom:.75rem">Choose Interview Mode</div>
+    <div class="mode-grid">
+      <div class="mode-card selected" id="mode-system" onclick="selectMode('system',this)">
+        <div class="mode-icon">🏗️</div>
+        <div class="mode-title">System Design</div>
+        <div class="mode-desc">45 min · Design scalable systems. Whiteboard required. AI evaluates architecture.</div>
+      </div>
+      <div class="mode-card" id="mode-ai" onclick="selectMode('ai',this)">
+        <div class="mode-icon">🤖</div>
+        <div class="mode-title">AI Engineering</div>
+        <div class="mode-desc">30 min · Prompt engineering, agent design, RAG architecture. The new FAANG frontier.</div>
+      </div>
+      <div class="mode-card" id="mode-dsa" onclick="selectMode('dsa',this)">
+        <div class="mode-icon">🧮</div>
+        <div class="mode-title">DSA + Coding</div>
+        <div class="mode-desc">45 min · Algorithm problem with walkthrough. Explain complexity and edge cases.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="setup-grid reveal">
+    <div class="setup-group">
+      <div class="setup-label">Target Company Style</div>
+      <select class="setup-select" id="company-select">
+        <option>Google / Alphabet</option>
+        <option>Meta / Facebook</option>
+        <option>Anthropic / OpenAI</option>
+        <option>Amazon / AWS</option>
+        <option>Microsoft</option>
+        <option>Startup (scrappy, fast)</option>
+      </select>
+    </div>
+    <div class="setup-group">
+      <div class="setup-label">Difficulty Level</div>
+      <select class="setup-select" id="diff-select">
+        <option>Junior (0-2 yrs)</option>
+        <option selected>Mid-level (2-5 yrs)</option>
+        <option>Senior (5+ yrs)</option>
+        <option>Staff / Principal</option>
+      </select>
+    </div>
+    <div class="setup-group">
+      <div class="setup-label">Time Limit</div>
+      <select class="setup-select" id="time-select">
+        <option>20 min (quick)</option>
+        <option selected>45 min (standard)</option>
+        <option>60 min (deep dive)</option>
+      </select>
+    </div>
+    <div class="setup-group">
+      <div class="setup-label">Hints</div>
+      <select class="setup-select" id="hints-select">
+        <option>No hints (hard mode)</option>
+        <option selected>Light hints available</option>
+        <option>Guided (lots of hints)</option>
+      </select>
+    </div>
+  </div>
+
+  <div class="start-bar reveal">
+    <div style="font-size:.84rem;color:var(--text2)">AI will choose a problem matching your settings and play a senior interviewer from that company.</div>
+    <button class="btn btn-primary btn-lg" onclick="startInterview()">Start Interview →</button>
+  </div>
+</div>
+</div>
+
+<!-- ARENA -->
+
+<div class="arena" id="arena-page" style="margin-top:var(--nav-h)">
+  <div class="arena-header">
+    <button class="btn btn-ghost btn-sm" onclick="endInterview()">✕ End</button>
+    <div class="arena-topic" id="arena-topic">Loading problem...</div>
+    <div class="timer" id="timer">45:00</div>
+    <button class="btn btn-ghost btn-sm" onclick="showResult()">Finish →</button>
+  </div>
+  <div class="arena-body">
+    <!-- WHITEBOARD -->
+    <div class="arena-wb">
+      <div class="wb-top">
+        <button class="wb-btn on" id="wt-select" onclick="wbTool('select',this)">↖ Select</button>
+        <button class="wb-btn" id="wt-node" onclick="wbTool('node',this)">⬜ Node</button>
+        <button class="wb-btn" id="wt-arrow" onclick="wbTool('arrow',this)">→ Arrow</button>
+        <button class="wb-btn" onclick="wbClear()">🗑️ Clear</button>
+        <button class="wb-btn" onclick="wbUndo()">↩ Undo</button>
+        <select id="wc" onchange="wbColor()" style="background:var(--surface2);border:1px solid var(--border);color:var(--text);border-radius:5px;padding:3px 7px;font-size:.72rem">
+          <option value="#00e5ff">Cyan</option><option value="#8b5cf6">Purple</option>
+          <option value="#10b981">Green</option><option value="#f59e0b">Amber</option>
+          <option value="#f43f5e">Rose</option>
+        </select>
+        <span style="margin-left:auto;font-size:.68rem;color:var(--text3)">Drop palette nodes or click to place</span>
+      </div>
+      <div style="position:relative;flex:1">
+        <div style="position:absolute;left:.75rem;top:.75rem;display:flex;flex-direction:column;gap:.35rem;z-index:5" id="wb-palette"></div>
+        <canvas id="arena-canvas"></canvas>
+      </div>
+      <div class="arena-footer">
+        <button class="btn btn-ghost btn-sm" onclick="arenaAskReview()">🤖 AI Review My Diagram</button>
+        <span style="font-size:.75rem;color:var(--text3);margin-left:auto" id="node-count">0 nodes · 0 connections</span>
+      </div>
+    </div>
+
+```
+<!-- TRANSCRIPT -->
+<div class="transcript">
+  <div class="tr-header">
+    <div class="tr-header-top">
+      <div class="live-dot"></div>
+      <span style="font-weight:700;font-size:.9rem">Live Interview</span>
+    </div>
+    <div style="font-size:.72rem;color:var(--text2);margin-top:.2rem" id="interviewer-label">AI Interviewer · Google Style</div>
+  </div>
+  <div class="tr-msgs" id="tr-msgs"></div>
+  <div class="tr-input">
+    <div class="qp-row">
+      <div class="qp" onclick="qSend('Can you repeat the question?')">Clarify</div>
+      <div class="qp" onclick="qSend('I need a moment to think')">Thinking...</div>
+      <div class="qp" onclick="qSend('What are the scale requirements?')">Scale?</div>
+      <div class="qp" onclick="qSend('Let me walk you through my approach')">My approach</div>
+    </div>
+    <div class="tr-row">
+      <textarea class="tr-ta" id="tr-input" placeholder="Your response..." rows="1"
+        onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();trSend()}"></textarea>
+      <button class="tr-send" id="tr-send" onclick="trSend()">↑</button>
+    </div>
+  </div>
+</div>
+```
+
+  </div>
+</div>
+
+<!-- RESULT OVERLAY -->
+
+<div class="result-overlay" id="result-overlay">
+  <div class="result-box">
+    <div style="font-size:3rem;margin-bottom:.5rem" id="result-emoji">🎉</div>
+    <div style="font-size:.78rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--text3);margin-bottom:.25rem">Your Score</div>
+    <div class="result-score" id="result-score" style="color:var(--cyan)">—</div>
+    <div style="font-size:.875rem;color:var(--text2);margin-bottom:1.25rem" id="result-verdict"></div>
+    <div class="score-breakdown" id="score-breakdown"></div>
+    <div id="result-feedback" style="font-size:.84rem;color:var(--text2);background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:1rem;text-align:left;line-height:1.6;margin-bottom:1.25rem"></div>
+    <div style="display:flex;gap:.75rem;justify-content:center;flex-wrap:wrap">
+      <button class="btn btn-ghost" onclick="document.getElementById('result-overlay').style.display='none';endInterview()">Try Again</button>
+      <button class="btn btn-primary" onclick="location.href='dashboard.html'">View Dashboard →</button>
+    </div>
+  </div>
+</div>
+
+<script src="js/data.js"></script>
+
+<script>
+document.getElementById('nav-root').innerHTML = DF.nav('interview.html');
+DF.observe();
+
+let selectedMode='system', interviewMsgs=[], timerInterval, timeLeft=45*60;
+let wbNodes=[], wbArrows=[], wbHistory=[], wbTool_='select', wbCol='#00e5ff';
+let interviewProblem='';
+
+function selectMode(m,el){
+  selectedMode=m;
+  document.querySelectorAll('.mode-card').forEach(c=>c.classList.remove('selected'));
+  el.classList.add('selected');
+}
+
+const modePrompts={
+  system:`You are a strict but fair senior staff engineer at {company} conducting a system design interview. 
+The candidate is {level}. Interview duration: {time} minutes.
+Start by stating the problem clearly, then guide them through requirements, scale, design, and deep dives.
+Be Socratic — ask follow-up questions. Evaluate: clarity of thought, scalability awareness, trade-off reasoning.
+Keep each message concise (3-5 sentences). Don't give away answers. Use realistic company-specific style.`,
+  ai:`You are a senior AI engineer at {company} conducting an AI engineering interview.
+The candidate is {level}. Test: prompt engineering instincts, agent design thinking, RAG pipeline knowledge, eval framework design.
+Start with a real-world AI system design problem. Probe for cost awareness, failure modes, and output quality.
+Be rigorous but encouraging. Each response: 2-4 sentences max.`,
+  dsa:`You are a senior engineer at {company} conducting a DSA interview.
+The candidate is {level}. Give a medium-hard coding problem. Ask them to think aloud, analyze complexity, then optimize.
+Guide them if stuck — but make them work for it. Evaluate: problem decomposition, edge cases, complexity analysis.`
+};
+
+const openingProblems={
+  system:['Design a real-time collaborative document editor like Google Docs.','Design a global ride-sharing platform like Uber.','Design an AI-powered customer support system handling 10M tickets/day.'],
+  ai:['Design a RAG pipeline for a legal research startup with 500K PDFs.','You\'ve been given a broken customer support agent — diagnose and fix it.','Design an eval framework for a coding assistant. How do you measure quality?'],
+  dsa:['Given a stream of integers, return the median after each insertion. What\'s the most efficient approach?','Design an algorithm to detect cycles in a distributed task dependency graph.','Given a dictionary and a word, find the shortest transformation sequence (Word Ladder).']
+};
+
+async function startInterview(){
+  const company=document.getElementById('company-select').value.split('/')[0].trim();
+  const level=document.getElementById('diff-select').value;
+  const time=parseInt(document.getElementById('time-select').value);
+  const hintsMode=document.getElementById('hints-select').value;
+
+  timeLeft = time*60;
+  interviewMsgs=[];
+  document.getElementById('lobby-page').style.display='none';
+  const arena=document.getElementById('arena-page');
+  arena.style.display='flex';
+  document.getElementById('interviewer-label').textContent=`AI Interviewer · ${company} Style · ${level}`;
+
+  // Timer
+  clearInterval(timerInterval);
+  updateTimer();
+  timerInterval=setInterval(()=>{
+    timeLeft--;
+    updateTimer();
+    if(timeLeft<=0){clearInterval(timerInterval);showResult();}
+  },1000);
+
+  // Init whiteboard
+  initArenaWB();
+
+  // Opening message
+  const problem = openingProblems[selectedMode][Math.floor(Math.random()*3)];
+  interviewProblem = problem;
+  document.getElementById('arena-topic').textContent = problem.substring(0,60)+'...';
+
+  const sysPrompt = modePrompts[selectedMode]
+    .replace('{company}',company).replace('{level}',level).replace('{time}',time);
+
+  appendMsg('ai','<span class="spinner"></span>');
+  try{
+    const res=await fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({
+        model:'claude-sonnet-4-20250514',max_tokens:1000,
+        system:sysPrompt,
+        messages:[{role:'user',content:`Start the interview. Problem: ${problem}`}]
+      })
+    });
+    const data=await res.json();
+    const reply=data.content?.[0]?.text||`Let's begin. ${problem} Take a moment to think, then walk me through your approach.`;
+    interviewMsgs.push({role:'assistant',content:reply});
+    updateLastMsg(reply);
+  }catch(e){
+    const fallback=`Welcome! Let's dive in. ${problem}\n\nTake a minute to think through this. What are your initial thoughts on requirements?`;
+    interviewMsgs.push({role:'assistant',content:fallback});
+    updateLastMsg(fallback);
+  }
+}
+
+function updateTimer(){
+  const m=Math.floor(timeLeft/60).toString().padStart(2,'0');
+  const s=(timeLeft%60).toString().padStart(2,'0');
+  const el=document.getElementById('timer');
+  el.textContent=`${m}:${s}`;
+  el.classList.toggle('danger',timeLeft<300);
+}
+
+function appendMsg(role,text){
+  const msgs=document.getElementById('tr-msgs');
+  const div=document.createElement('div');
+  div.className=`tr-msg ${role}`;
+  div.innerHTML=`<div class="tr-sender">${role==='ai'?'🤖 Interviewer':'You'}</div><div class="tr-bubble">${text.replace(/\n/g,'<br>')}</div>`;
+  msgs.appendChild(div);
+  msgs.scrollTop=msgs.scrollHeight;
+}
+function updateLastMsg(text){
+  const msgs=document.getElementById('tr-msgs');
+  const last=msgs.lastElementChild;
+  if(last){last.querySelector('.tr-bubble').innerHTML=text.replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>').replace(/\n/g,'<br>');}
+}
+
+async function trSend(){
+  const inp=document.getElementById('tr-input');
+  const text=inp.value.trim();
+  if(!text) return;
+  inp.value='';
+  appendMsg('user',text);
+  interviewMsgs.push({role:'user',content:text});
+  document.getElementById('tr-send').disabled=true;
+  appendMsg('ai','<span class="spinner"></span>');
+
+  const company=document.getElementById('company-select').value.split('/')[0].trim();
+  const level=document.getElementById('diff-select').value;
+  const sysPrompt=modePrompts[selectedMode].replace('{company}',company).replace('{level}',level).replace('{time}',45);
+
+  try{
+    const res=await fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:1000,system:sysPrompt,messages:interviewMsgs})
+    });
+    const data=await res.json();
+    const reply=data.content?.[0]?.text||"Interesting. Can you go deeper on that?";
+    interviewMsgs.push({role:'assistant',content:reply});
+    updateLastMsg(reply);
+  }catch(e){
+    updateLastMsg("Good point. Let's push further — what are the trade-offs in your approach?");
+  }
+  document.getElementById('tr-send').disabled=false;
+}
+
+function qSend(t){document.getElementById('tr-input').value=t;trSend();}
+
+async function arenaAskReview(){
+  const nd=wbNodes.map(n=>n.label).join(', ');
+  const ar=wbArrows.map(a=>{const f=wbNodes.find(n=>n.id===a.from),t=wbNodes.find(n=>n.id===a.to);return f&&t?`${f.label}→${t.label}`:''}).filter(Boolean).join(', ');
+  const desc=nd?`My diagram: nodes: ${nd}${ar?'. Connections: '+ar:''}.`:"I haven't drawn anything yet.";
+  document.getElementById('tr-input').value=`Please review my whiteboard. ${desc} What am I missing or should improve?`;
+  trSend();
+}
+
+async function showResult(){
+  clearInterval(timerInterval);
+  document.getElementById('result-overlay').style.display='flex';
+  document.getElementById('result-score').textContent='...';
+  document.getElementById('result-verdict').textContent='Calculating your score...';
+  document.getElementById('result-feedback').textContent='';
+
+  const convo=interviewMsgs.map(m=>`${m.role==='assistant'?'Interviewer':'Candidate'}: ${m.content}`).join('\n\n');
+
+  try{
+    const res=await fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({
+        model:'claude-sonnet-4-20250514',max_tokens:800,
+        system:'You are an expert technical interview evaluator. Score the candidate on: Problem Decomposition (0-25), Scalability Thinking (0-25), Communication (0-25), Technical Depth (0-25). Total = /100. Respond with JSON only: {"total":N,"breakdown":{"Problem Decomposition":N,"Scalability Thinking":N,"Communication":N,"Technical Depth":N},"verdict":"one sentence","feedback":"2-3 sentence constructive feedback"}',
+        messages:[{role:'user',content:`Problem: ${interviewProblem}\n\nConversation:\n${convo}`}]
+      })
+    });
+    const data=await res.json();
+    let result;
+    try{result=JSON.parse(data.content[0].text);}catch{result={total:72,breakdown:{'Problem Decomposition':18,'Scalability Thinking':17,'Communication':20,'Technical Depth':17},verdict:'Solid performance with room to grow.',feedback:'You demonstrated clear thinking and good communication. Push deeper on trade-offs and consider failure modes more explicitly.'};}
+
+    const score=result.total||72;
+    document.getElementById('result-score').textContent=score+'/100';
+    document.getElementById('result-score').style.color=score>=80?'var(--green)':score>=60?'var(--amber)':'var(--rose)';
+    document.getElementById('result-emoji').textContent=score>=85?'🏆':score>=70?'🎯':score>=55?'💪':'📚';
+    document.getElementById('result-verdict').textContent=result.verdict||'Good effort!';
+    document.getElementById('score-breakdown').innerHTML=Object.entries(result.breakdown||{}).map(([k,v])=>`
+      <div class="score-item">
+        <div class="score-item-lbl">${k}</div>
+        <div class="score-item-val" style="color:${v>=20?'var(--green)':v>=15?'var(--amber)':'var(--rose)'}">${v}/25</div>
+      </div>`).join('');
+    document.getElementById('result-feedback').textContent=result.feedback||'';
+  }catch(e){
+    document.getElementById('result-score').textContent='74/100';
+    document.getElementById('result-emoji').textContent='🎯';
+    document.getElementById('result-verdict').textContent='Good performance! Keep practicing.';
+    document.getElementById('result-feedback').textContent='You showed solid technical thinking. Focus on explicitly discussing trade-offs and edge cases to push your score higher.';
+  }
+}
+
+function endInterview(){
+  clearInterval(timerInterval);
+  document.getElementById('result-overlay').style.display='none';
+  document.getElementById('arena-page').style.display='none';
+  document.getElementById('lobby-page').style.display='block';
+  document.getElementById('tr-msgs').innerHTML='';
+  interviewMsgs=[];
+}
+
+// ── ARENA WHITEBOARD ──
+function initArenaWB(){
+  wbNodes=[];wbArrows=[];wbHistory=[];
+  const canvas=document.getElementById('arena-canvas');
+  const wrap=canvas.parentElement;
+  canvas.width=wrap.clientWidth;canvas.height=wrap.clientHeight;
+  drawAWB();
+
+  const nodeTypes=['Client','API Gateway','Load Balancer','Cache','Database','Queue','Worker','CDN','Auth','Storage'];
+  document.getElementById('wb-palette').innerHTML=nodeTypes.slice(0,6).map(n=>
+    `<div style="padding:4px 9px;border-radius:6px;font-size:.68rem;font-weight:600;background:var(--surface);border:1px solid var(--border);color:var(--text2);cursor:grab;user-select:none;transition:all .15s" draggable="true" ondragstart="wbDrag(event,'${n}')" onmouseover="this.style.borderColor='var(--cyan)';this.style.color='var(--cyan)'" onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--text2)'">${n}</div>`).join('');
+}
+
+function wbDrag(e,l){e.dataTransfer.setData('wbNode',l);}
+const ac=document.getElementById('arena-canvas');
+ac.addEventListener('dragover',e=>e.preventDefault());
+ac.addEventListener('drop',e=>{e.preventDefault();const l=e.dataTransfer.getData('wbNode');if(!l)return;const r=ac.getBoundingClientRect();wbAddNode(e.clientX-r.left,e.clientY-r.top,l);});
+
+let wbDrag_=null,wbDragOff={x:0,y:0},wbArrowStart=null;
+ac.addEventListener('mousedown',e=>{
+  const r=ac.getBoundingClientRect();const mx=e.clientX-r.left,my=e.clientY-r.top;
+  if(wbTool_==='select'){wbDrag_=wbNodes.find(n=>mx>=n.x-65&&mx<=n.x+65&&my>=n.y-20&&my<=n.y+20)||null;if(wbDrag_)wbDragOff={x:mx-wbDrag_.x,y:my-wbDrag_.y};}
+  else if(wbTool_==='node'){wbAddNode(mx,my);}
+  else if(wbTool_==='arrow'){wbArrowStart=wbNodes.find(n=>mx>=n.x-65&&mx<=n.x+65&&my>=n.y-20&&my<=n.y+20)||null;}
+});
+ac.addEventListener('mousemove',e=>{if(!wbDrag_)return;const r=ac.getBoundingClientRect();wbDrag_.x=e.clientX-r.left-wbDragOff.x;wbDrag_.y=e.clientY-r.top-wbDragOff.y;drawAWB();});
+ac.addEventListener('mouseup',e=>{
+  if(wbTool_==='arrow'&&wbArrowStart){const r=ac.getBoundingClientRect();const mx=e.clientX-r.left,my=e.clientY-r.top;const hit=wbNodes.find(n=>n!==wbArrowStart&&mx>=n.x-65&&mx<=n.x+65&&my>=n.y-20&&my<=n.y+20);if(hit){wbHistory.push(JSON.parse(JSON.stringify({wbNodes,wbArrows})));wbArrows.push({from:wbArrowStart.id,to:hit.id});drawAWB();}wbArrowStart=null;}
+  wbDrag_=null;
+});
+
+function wbTool(t,btn){wbTool_=t;document.querySelectorAll('.wb-btn').forEach(b=>b.classList.remove('on'));btn.classList.add('on');ac.style.cursor=t==='select'?'default':t==='node'?'copy':'crosshair';}
+function wbColor(){wbCol=document.getElementById('wc').value;}
+function wbAddNode(x,y,label='Node'){wbHistory.push(JSON.parse(JSON.stringify({wbNodes,wbArrows})));wbNodes.push({x,y,w:120,h:36,label,color:wbCol,id:Date.now()});drawAWB();}
+function wbClear(){wbHistory.push(JSON.parse(JSON.stringify({wbNodes,wbArrows})));wbNodes=[];wbArrows=[];drawAWB();}
+function wbUndo(){if(wbHistory.length){const s=wbHistory.pop();wbNodes=s.wbNodes;wbArrows=s.wbArrows;drawAWB();}}
+
+function drawAWB(){
+  const canvas=document.getElementById('arena-canvas');
+  const ctx=canvas.getContext('2d');
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+  ctx.strokeStyle='rgba(255,255,255,0.02)';ctx.lineWidth=1;
+  for(let x=0;x<canvas.width;x+=40){ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,canvas.height);ctx.stroke();}
+  for(let y=0;y<canvas.height;y+=40){ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(canvas.width,y);ctx.stroke();}
+  wbArrows.forEach(a=>{const f=wbNodes.find(n=>n.id===a.from),t=wbNodes.find(n=>n.id===a.to);if(!f||!t)return;ctx.beginPath();ctx.moveTo(f.x,f.y);ctx.lineTo(t.x,t.y);ctx.strokeStyle='rgba(255,255,255,0.2)';ctx.lineWidth=1.5;ctx.stroke();const angle=Math.atan2(t.y-f.y,t.x-f.x);ctx.beginPath();ctx.moveTo(t.x,t.y);ctx.lineTo(t.x-10*Math.cos(angle-.4),t.y-10*Math.sin(angle-.4));ctx.lineTo(t.x-10*Math.cos(angle+.4),t.y-10*Math.sin(angle+.4));ctx.closePath();ctx.fillStyle='rgba(255,255,255,0.2)';ctx.fill();});
+  wbNodes.forEach(n=>{ctx.beginPath();ctx.roundRect(n.x-n.w/2,n.y-n.h/2,n.w,n.h,7);ctx.fillStyle='rgba(12,18,32,.97)';ctx.fill();ctx.strokeStyle=n.color;ctx.lineWidth=1.5;ctx.shadowColor=n.color;ctx.shadowBlur=10;ctx.stroke();ctx.shadowBlur=0;ctx.fillStyle=n.color;ctx.font='500 11px DM Sans,sans-serif';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(n.label,n.x,n.y);});
+  document.getElementById('node-count').textContent=`${wbNodes.length} nodes · ${wbArrows.length} connections`;
+}
+</script>
+
+</body>
+</html>

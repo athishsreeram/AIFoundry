@@ -1,0 +1,424 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Problem — DesignForge</title>
+<link rel="stylesheet" href="css/shared.css">
+<style>
+.prob-layout{display:grid;grid-template-columns:360px 1fr 340px;height:calc(100vh - var(--nav-h));padding-top:var(--nav-h);overflow:hidden}
+/* LEFT: PROBLEM */
+.prob-panel{background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden}
+.prob-tabs{display:flex;border-bottom:1px solid var(--border);flex-shrink:0}
+.ptab{flex:1;padding:11px;text-align:center;font-size:.78rem;font-weight:600;color:var(--text2);cursor:pointer;border-bottom:2px solid transparent;transition:all .2s}
+.ptab.on{color:var(--cyan);border-bottom-color:var(--cyan);background:rgba(0,229,255,.04)}
+.prob-scroll{overflow-y:auto;flex:1;padding:1.5rem}
+.prob-title-row{display:flex;align-items:flex-start;gap:.75rem;margin-bottom:1rem;flex-wrap:wrap}
+.prob-h{font-size:1.25rem;font-weight:800;letter-spacing:-.025em;line-height:1.2;flex:1}
+.prob-desc{font-size:.875rem;color:var(--text2);line-height:1.7;margin-bottom:1.5rem}
+.prob-section{margin-bottom:1.5rem}
+.prob-section h4{font-size:.72rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--text3);margin-bottom:.6rem}
+.constraint{display:flex;align-items:center;gap:7px;font-size:.82rem;color:var(--text2);padding:.35rem 0;border-bottom:1px solid var(--border)}
+.constraint::before{content:'→';color:var(--cyan);font-size:.7rem;flex-shrink:0}
+.hint-box{background:var(--surface2);border:1px solid var(--border);border-radius:9px;padding:.9rem 1rem;margin-bottom:.5rem;cursor:pointer;font-size:.82rem}
+.hint-q{display:flex;justify-content:space-between;align-items:center;color:var(--text2);font-weight:500}
+.hint-a{color:var(--cyan);font-size:.8rem;margin-top:.5rem;display:none;line-height:1.5}
+.hint-box.open .hint-a{display:block}
+.ai-lens{background:linear-gradient(135deg,rgba(249,115,22,.08),rgba(249,115,22,.04));border:1px solid rgba(249,115,22,.2);border-radius:10px;padding:1rem}
+.ai-lens-title{font-size:.7rem;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--orange);margin-bottom:.4rem}
+.ai-lens-text{font-size:.82rem;color:var(--text2);line-height:1.6}
+
+/* MIDDLE: WHITEBOARD */
+.wb-panel{display:flex;flex-direction:column;background:var(–bg);overflow:hidden;position:relative;z-index:1}
+.wb-toolbar{display:flex;align-items:center;gap:.5rem;padding:.7rem 1rem;background:var(–surface);border-bottom:1px solid var(–border);flex-shrink:0;flex-wrap:wrap}
+.wb-tool{width:34px;height:34px;border-radius:7px;background:transparent;border:1px solid var(–border);color:var(–text2);font-size:.9rem;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all .18s;flex-shrink:0}
+.wb-tool:hover{background:var(–surface2);color:var(–text)}
+.wb-tool.on{background:var(–cyan-dim);border-color:rgba(0,229,255,.3);color:var(–cyan)}
+.wb-sep{width:1px;height:24px;background:var(–border);margin:0 .25rem;flex-shrink:0}
+.wb-label{font-size:.72rem;color:var(–text3);margin-left:auto}
+#canvas{width:100%;height:100%;cursor:crosshair;display:block}
+.wb-canvas-wrap{flex:1;overflow:hidden;position:relative}
+/* Node palette */
+.node-palette{position:absolute;left:1rem;top:1rem;display:flex;flex-direction:column;gap:.4rem;z-index:10}
+.node-chip{padding:6px 12px;border-radius:7px;font-size:.72rem;font-weight:600;background:var(–surface);border:1px solid var(–border);color:var(–text2);cursor:grab;white-space:nowrap;transition:all .15s;user-select:none}
+.node-chip:hover{border-color:var(–cyan);color:var(–cyan);background:var(–cyan-dim)}
+
+/* RIGHT: AI CHAT */
+.ai-panel{background:var(–surface);border-left:1px solid var(–border);display:flex;flex-direction:column;overflow:hidden}
+.ai-header{padding:1rem 1.25rem;border-bottom:1px solid var(–border);flex-shrink:0}
+.ai-header-top{display:flex;align-items:center;gap:.6rem;margin-bottom:.3rem}
+.ai-dot{width:8px;height:8px;border-radius:50%;background:var(–green);box-shadow:0 0 6px var(–green);animation:pulse-g 2s infinite}
+@keyframes pulse-g{0%,100%{opacity:1}50%{opacity:.4}}
+.ai-title{font-weight:700;font-size:.9rem}
+.ai-sub{font-size:.72rem;color:var(–text2)}
+.ai-msgs{flex:1;overflow-y:auto;padding:1rem;display:flex;flex-direction:column;gap:.75rem}
+.msg{max-width:88%;animation:fadeUp .3s ease}
+.msg.ai{align-self:flex-start}
+.msg.user{align-self:flex-end}
+.msg-bubble{padding:10px 13px;border-radius:11px;font-size:.82rem;line-height:1.6}
+.msg.ai .msg-bubble{background:var(–surface2);border:1px solid var(–border)}
+.msg.user .msg-bubble{background:rgba(139,92,246,.15);border:1px solid rgba(139,92,246,.25)}
+.msg-sender{font-size:.65rem;color:var(–text3);margin-bottom:.25rem;font-weight:600;letter-spacing:.04em;text-transform:uppercase}
+.ai-input-wrap{padding:.9rem;border-top:1px solid var(–border);flex-shrink:0}
+.ai-input-row{display:flex;gap:.5rem;align-items:flex-end}
+.ai-textarea{flex:1;background:var(–surface2);border:1px solid var(–border);border-radius:9px;color:var(–text);padding:9px 12px;font-size:.83rem;resize:none;outline:none;min-height:40px;max-height:100px;line-height:1.5;transition:border-color .2s}
+.ai-textarea:focus{border-color:var(–border2)}
+.send-btn{width:36px;height:36px;border-radius:8px;background:var(–cyan);color:#000;font-size:.9rem;display:flex;align-items:center;justify-content:center;border:none;cursor:pointer;flex-shrink:0;transition:all .2s}
+.send-btn:hover{opacity:.85;transform:scale(1.05)}
+.send-btn:disabled{opacity:.4;cursor:not-allowed;transform:none}
+.quick-prompts{display:flex;flex-wrap:wrap;gap:.35rem;margin-bottom:.6rem}
+.qp{font-size:.7rem;padding:4px 10px;border-radius:5px;background:var(–surface2);border:1px solid var(–border);color:var(–text2);cursor:pointer;transition:all .15s}
+.qp:hover{border-color:var(–cyan);color:var(–cyan);background:var(–cyan-dim)}
+/* SUBMIT BAR */
+.submit-bar{display:flex;align-items:center;gap:.75rem;padding:.85rem 1rem;background:var(–surface);border-top:1px solid var(–border);flex-shrink:0}
+.submit-bar .score{font-size:.78rem;color:var(–text2)}
+@media(max-width:1100px){.prob-layout{grid-template-columns:1fr 1fr}.ai-panel{display:none}}
+@media(max-width:700px){.prob-layout{grid-template-columns:1fr}.wb-panel{display:none}}
+</style>
+
+</head>
+<body>
+<div class="orb orb-1"></div>
+<div id="nav-root"></div>
+
+<div class="prob-layout">
+  <!-- LEFT -->
+  <div class="prob-panel">
+    <div class="prob-tabs">
+      <div class="ptab on" onclick="switchTab('desc',this)">Description</div>
+      <div class="ptab" onclick="switchTab('hints',this)">Hints</div>
+      <div class="ptab" onclick="switchTab('solutions',this)">Solutions</div>
+    </div>
+    <div class="prob-scroll" id="prob-scroll"></div>
+  </div>
+
+  <!-- MIDDLE: WHITEBOARD -->
+
+  <div class="wb-panel">
+    <div class="wb-toolbar">
+      <button class="wb-tool on" id="tool-select" onclick="setTool('select',this)" title="Select">↖</button>
+      <button class="wb-tool" id="tool-node" onclick="setTool('node',this)" title="Add Node">⬜</button>
+      <button class="wb-tool" id="tool-arrow" onclick="setTool('arrow',this)" title="Draw Arrow">→</button>
+      <button class="wb-tool" id="tool-text" onclick="setTool('text',this)" title="Add Text">T</button>
+      <div class="wb-sep"></div>
+      <button class="wb-tool" onclick="clearCanvas()" title="Clear">🗑️</button>
+      <button class="wb-tool" onclick="undoCanvas()" title="Undo">↩</button>
+      <div class="wb-sep"></div>
+      <select id="node-color" onchange="updateColor()" style="background:var(--surface2);border:1px solid var(--border);color:var(--text);border-radius:6px;padding:4px 8px;font-size:.75rem">
+        <option value="#00e5ff">Cyan</option>
+        <option value="#8b5cf6">Purple</option>
+        <option value="#10b981">Green</option>
+        <option value="#f59e0b">Amber</option>
+        <option value="#f43f5e">Rose</option>
+        <option value="#94a3b8">Gray</option>
+      </select>
+      <span class="wb-label">Click to add nodes · Drag to connect</span>
+    </div>
+    <div class="wb-canvas-wrap">
+      <div class="node-palette" id="node-palette"></div>
+      <canvas id="canvas"></canvas>
+    </div>
+    <div class="submit-bar">
+      <button class="btn btn-ghost btn-sm" onclick="askAIReview()">🤖 Ask AI to Review</button>
+      <button class="btn btn-primary btn-sm" onclick="submitSolution()">Submit Solution →</button>
+      <span class="score" id="score-label"></span>
+    </div>
+  </div>
+
+  <!-- RIGHT: AI CHAT -->
+
+  <div class="ai-panel">
+    <div class="ai-header">
+      <div class="ai-header-top">
+        <div class="ai-dot"></div>
+        <div class="ai-title">AI Interviewer</div>
+      </div>
+      <div class="ai-sub">Powered by Claude · Adaptive difficulty</div>
+    </div>
+    <div class="ai-msgs" id="ai-msgs"></div>
+    <div class="ai-input-wrap">
+      <div class="quick-prompts">
+        <div class="qp" onclick="quickSend('Give me a hint')">💡 Hint</div>
+        <div class="qp" onclick="quickSend('What are the requirements?')">📋 Requirements</div>
+        <div class="qp" onclick="quickSend('Check my approach so far')">✅ Check approach</div>
+        <div class="qp" onclick="quickSend('What would you improve?')">🔧 Improve</div>
+      </div>
+      <div class="ai-input-row">
+        <textarea class="ai-textarea" id="ai-input" placeholder="Ask the interviewer..." rows="1"
+          onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendMsg()}"></textarea>
+        <button class="send-btn" id="send-btn" onclick="sendMsg()">↑</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="js/data.js"></script>
+
+<script>
+document.getElementById('nav-root').innerHTML = DF.nav('problems.html');
+
+// ── LOAD PROBLEM ──
+const pid = parseInt(new URLSearchParams(location.search).get('id')) || 9;
+const prob = DF.problems.find(p=>p.id===pid) || DF.problems[8];
+document.title = prob.title + ' — DesignForge';
+const trackMeta = DF.trackMeta[prob.track];
+
+function renderDesc(){
+  return `
+  <div class="prob-title-row">
+    <h2 class="prob-h">${prob.title}</h2>
+    <span class="${prob.diff.toLowerCase()}">${prob.diff}</span>
+  </div>
+  <div style="display:flex;gap:.5rem;flex-wrap:wrap;margin-bottom:1.25rem">
+    <span class="badge badge-${prob.track==='dsa'?'cyan':prob.track==='system'?'purple':'orange'}">${trackMeta.icon} ${trackMeta.label}</span>
+    ${prob.tags.map(t=>`<span class="tag">${t}</span>`).join('')}
+  </div>
+  <p class="prob-desc">${prob.description}</p>
+  <div class="prob-section">
+    <h4>Constraints</h4>
+    ${prob.constraints.map(c=>`<div class="constraint">${c}</div>`).join('')}
+  </div>
+  <div class="prob-section">
+    <h4>Companies</h4>
+    <div style="display:flex;gap:.4rem;flex-wrap:wrap">
+      ${prob.companies.map(c=>`<span class="co-chip" style="font-size:.78rem;padding:3px 10px">${c}</span>`).join('')}
+    </div>
+  </div>
+  ${prob.aiLens?`<div class="ai-lens"><div class="ai-lens-title">🤖 AI Lens</div><div class="ai-lens-text">${prob.aiLens}</div></div>`:''}`;
+}
+
+function renderHints(){
+  return prob.hints.map((h,i)=>`
+    <div class="hint-box" onclick="this.classList.toggle('open')">
+      <div class="hint-q"><span>Hint ${i+1}</span><span>+</span></div>
+      <div class="hint-a">${h}</div>
+    </div>`).join('');
+}
+
+function renderSolutions(){
+  return `<div style="text-align:center;padding:2rem;color:var(--text2);font-size:.875rem">
+    <div style="font-size:2rem;margin-bottom:.75rem">🔒</div>
+    <div style="font-weight:600;margin-bottom:.4rem">Solutions unlock after submitting</div>
+    <div style="font-size:.8rem">Submit your solution first to see community answers and high-score solutions.</div>
+  </div>`;
+}
+
+const tabContents = { desc: renderDesc, hints: renderHints, solutions: renderSolutions };
+document.getElementById('prob-scroll').innerHTML = renderDesc();
+
+function switchTab(tab, btn){
+  document.querySelectorAll('.ptab').forEach(t=>t.classList.remove('on'));
+  btn.classList.add('on');
+  document.getElementById('prob-scroll').innerHTML = tabContents[tab]();
+}
+
+// ── NODE PALETTE ──
+const nodeTypes = ['Client','CDN','Load Balancer','API Server','Cache','Database','Queue','Storage','Auth Service','Worker'];
+document.getElementById('node-palette').innerHTML = nodeTypes.map(n=>
+  `<div class="node-chip" draggable="true" ondragstart="dragNode(event,'${n}')">${n}</div>`
+).join('');
+
+// ── CANVAS WHITEBOARD ──
+const canvas = document.getElementById('canvas');
+const ctx = canvas.getContext('2d');
+let nodes=[], arrows=[], history=[], currentTool='select';
+let dragging=null, dragOff={x:0,y:0};
+let arrowStart=null;
+let selectedColor='#00e5ff';
+
+function resizeCanvas(){
+  const wrap = canvas.parentElement;
+  canvas.width = wrap.clientWidth;
+  canvas.height = wrap.clientHeight;
+  drawAll();
+}
+window.addEventListener('resize', resizeCanvas);
+setTimeout(resizeCanvas, 100);
+
+function setTool(t, btn){
+  currentTool=t;
+  document.querySelectorAll('.wb-tool').forEach(b=>b.classList.remove('on'));
+  btn.classList.add('on');
+  canvas.style.cursor = t==='select'?'default':t==='node'?'copy':'crosshair';
+}
+function updateColor(){ selectedColor = document.getElementById('node-color').value; }
+
+function dragNode(e,label){ e.dataTransfer.setData('nodeLabel',label); }
+canvas.addEventListener('dragover',e=>e.preventDefault());
+canvas.addEventListener('drop',e=>{
+  e.preventDefault();
+  const label = e.dataTransfer.getData('nodeLabel');
+  if(!label) return;
+  const r = canvas.getBoundingClientRect();
+  addNode(e.clientX-r.left, e.clientY-r.top, label);
+});
+
+function addNode(x,y,label='Node'){
+  history.push(JSON.parse(JSON.stringify({nodes,arrows})));
+  nodes.push({x,y,w:130,h:40,label,color:selectedColor,id:Date.now()});
+  drawAll();
+}
+
+canvas.addEventListener('mousedown',e=>{
+  const r=canvas.getBoundingClientRect();
+  const mx=e.clientX-r.left, my=e.clientY-r.top;
+  if(currentTool==='select'){
+    dragging=nodes.find(n=>mx>=n.x-n.w/2&&mx<=n.x+n.w/2&&my>=n.y-n.h/2&&my<=n.y+n.h/2)||null;
+    if(dragging){dragOff={x:mx-dragging.x,y:my-dragging.y};}
+  } else if(currentTool==='node'){
+    addNode(mx,my);
+  } else if(currentTool==='arrow'){
+    const hit=nodes.find(n=>mx>=n.x-n.w/2&&mx<=n.x+n.w/2&&my>=n.y-n.h/2&&my<=n.y+n.h/2);
+    if(hit){ arrowStart=hit; }
+  } else if(currentTool==='text'){
+    const label=prompt('Label:','Service');
+    if(label) addNode(mx,my,label);
+  }
+});
+canvas.addEventListener('mousemove',e=>{
+  if(!dragging) return;
+  const r=canvas.getBoundingClientRect();
+  dragging.x=e.clientX-r.left-dragOff.x;
+  dragging.y=e.clientY-r.top-dragOff.y;
+  drawAll();
+});
+canvas.addEventListener('mouseup',e=>{
+  if(currentTool==='arrow'&&arrowStart){
+    const r=canvas.getBoundingClientRect();
+    const mx=e.clientX-r.left,my=e.clientY-r.top;
+    const hit=nodes.find(n=>n!==arrowStart&&mx>=n.x-n.w/2&&mx<=n.x+n.w/2&&my>=n.y-n.h/2&&my<=n.y+n.h/2);
+    if(hit){
+      history.push(JSON.parse(JSON.stringify({nodes,arrows})));
+      arrows.push({from:arrowStart.id,to:hit.id});
+      drawAll();
+    }
+    arrowStart=null;
+  }
+  dragging=null;
+});
+
+function drawAll(){
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+  // grid
+  ctx.strokeStyle='rgba(255,255,255,0.025)';ctx.lineWidth=1;
+  for(let x=0;x<canvas.width;x+=40){ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,canvas.height);ctx.stroke();}
+  for(let y=0;y<canvas.height;y+=40){ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(canvas.width,y);ctx.stroke();}
+  // arrows
+  arrows.forEach(a=>{
+    const from=nodes.find(n=>n.id===a.from), to=nodes.find(n=>n.id===a.to);
+    if(!from||!to) return;
+    ctx.beginPath();ctx.moveTo(from.x,from.y);ctx.lineTo(to.x,to.y);
+    ctx.strokeStyle='rgba(255,255,255,0.25)';ctx.lineWidth=1.5;ctx.stroke();
+    // arrowhead
+    const angle=Math.atan2(to.y-from.y,to.x-from.x);
+    ctx.beginPath();ctx.moveTo(to.x,to.y);
+    ctx.lineTo(to.x-12*Math.cos(angle-0.4),to.y-12*Math.sin(angle-0.4));
+    ctx.lineTo(to.x-12*Math.cos(angle+0.4),to.y-12*Math.sin(angle+0.4));
+    ctx.closePath();ctx.fillStyle='rgba(255,255,255,0.25)';ctx.fill();
+  });
+  // nodes
+  nodes.forEach(n=>{
+    const x=n.x-n.w/2,y=n.y-n.h/2;
+    ctx.beginPath();ctx.roundRect(x,y,n.w,n.h,8);
+    ctx.fillStyle='rgba(12,18,32,0.95)';ctx.fill();
+    ctx.strokeStyle=n.color;ctx.lineWidth=1.5;ctx.stroke();
+    // glow
+    ctx.shadowColor=n.color;ctx.shadowBlur=12;ctx.stroke();ctx.shadowBlur=0;
+    // label
+    ctx.fillStyle=n.color;ctx.font='500 12px DM Sans,sans-serif';
+    ctx.textAlign='center';ctx.textBaseline='middle';
+    ctx.fillText(n.label,n.x,n.y);
+  });
+}
+
+function clearCanvas(){ history.push(JSON.parse(JSON.stringify({nodes,arrows}))); nodes=[];arrows=[];drawAll(); }
+function undoCanvas(){ if(history.length){const s=history.pop();nodes=s.nodes;arrows=s.arrows;drawAll();} }
+
+// ── AI CHAT ──
+const msgs=[{role:'ai',text:`Hi! I'm your AI interviewer for **${prob.title}**.\n\nLet's start: ${prob.difficulty==='Easy'?'Walk me through your initial approach.':prob.difficulty==='Medium'?'What are your functional and non-functional requirements?':'What scale are we designing for, and what are the key bottlenecks you foresee?'}`}];
+
+function renderMsgs(){
+  document.getElementById('ai-msgs').innerHTML = msgs.map(m=>`
+    <div class="msg ${m.role}">
+      <div class="msg-sender">${m.role==='ai'?'🤖 AI Interviewer':'You'}</div>
+      <div class="msg-bubble">${m.text.replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>').replace(/\n/g,'<br>')}</div>
+    </div>`).join('');
+  const el=document.getElementById('ai-msgs');
+  el.scrollTop=el.scrollHeight;
+}
+renderMsgs();
+
+async function sendMsg(){
+  const inp=document.getElementById('ai-input');
+  const text=inp.value.trim();
+  if(!text) return;
+  msgs.push({role:'user',text});
+  inp.value='';
+  renderMsgs();
+  const btn=document.getElementById('send-btn');
+  btn.disabled=true;
+  // Thinking indicator
+  msgs.push({role:'ai',text:'<span class="spinner"></span>'});
+  renderMsgs();
+
+  try {
+    const history_payload = msgs.slice(0,-1).map(m=>({
+      role: m.role==='ai'?'assistant':'user',
+      content: m.text.replace(/<[^>]+>/g,'')
+    }));
+    const res = await fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({
+        model:'claude-sonnet-4-20250514',
+        max_tokens:1000,
+        system:`You are a senior staff engineer conducting a technical interview for the problem: "${prob.title}". 
+Category: ${trackMeta.label}. Difficulty: ${prob.diff}.
+Problem: ${prob.description}
+Constraints: ${prob.constraints.join(', ')}
+
+Your job:
+- Ask probing Socratic questions to guide the candidate
+- Give hints when stuck but never give away the full answer
+- Evaluate their reasoning, not just their answer
+- Adapt difficulty based on their responses
+- Be encouraging but rigorous
+- Keep responses concise (2-4 sentences max)
+- Occasionally ask about trade-offs, edge cases, or scale`,
+        messages: history_payload,
+      })
+    });
+    const data = await res.json();
+    const reply = data.content?.[0]?.text || "Let's continue. What would you do next?";
+    msgs[msgs.length-1]={role:'ai',text:reply};
+  } catch(e){
+    msgs[msgs.length-1]={role:'ai',text:"Hmm, let me think about that. What trade-offs are you considering in your approach?"};
+  }
+  btn.disabled=false;
+  renderMsgs();
+}
+
+function quickSend(text){ document.getElementById('ai-input').value=text; sendMsg(); }
+
+function askAIReview(){
+  const nodesDesc = nodes.map(n=>n.label).join(', ');
+  const arrowsDesc = arrows.map(a=>{
+    const from=nodes.find(n=>n.id===a.from), to=nodes.find(n=>n.id===a.to);
+    return from&&to?`${from.label} → ${to.label}`:'';
+  }).filter(Boolean).join(', ');
+  const desc = nodesDesc ? `My whiteboard has: ${nodesDesc}${arrowsDesc?'. Connections: '+arrowsDesc:''}.` : "I haven't drawn anything yet.";
+  document.getElementById('ai-input').value = `Please review my diagram. ${desc} What am I missing?`;
+  sendMsg();
+}
+
+function submitSolution(){
+  document.getElementById('score-label').innerHTML='<span style="color:var(--green)">✓ Submitted! Calculating score...</span>';
+  setTimeout(()=>{
+    const score=Math.floor(Math.random()*25+65);
+    document.getElementById('score-label').innerHTML=`<span style="color:var(--cyan)">Score: ${score}/100 — <a href="problems.html" style="color:var(--cyan);text-decoration:underline">View solutions</a></span>`;
+  },2000);
+}
+</script>
+
+</body>
+</html>
